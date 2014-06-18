@@ -1,0 +1,45 @@
+## This is just an initial attempt for the README file, more stuff will come in later. 
+=======================
+README for PePr v1.0.1
+=======================
+<05-07-2014 Yanxiao Zhang>
+
+HOMEPAGE
+=======
+https://code.google.com/p/pepr-chip-seq/
+---------------------------------------
+
+INTRODUCTION
+============
+PePr is a ChIP-Seq Peak-calling and Prioritization pipeline 
+that uses a sliding window approach and models read counts across 
+replicates and between groups with a negative binomial distribution. 
+PePr empirically estimates the optimal shift/fragment size and 
+sliding window width, and estimates dispersion from the local genomic
+area. Regions with less variability across replicates are ranked more
+favorably than regions with greater variability. Optional 
+post-processing steps are also made available to filter out peaks
+not exhibiting the expected shift size and/or to narrow the width of peaks.
+
+
+INSTALL
+=======
+if you want to use pip to install PePr(recommended): 
+    if pip package is intalled in your system:
+        simply run `pip install PePr`
+    else:
+        install pip and then run `pip intall PePr`
+else if you don't want to use pip (going the harder way): 
+    manually download and install the dependencies if not already 
+    installed(numpy, scipy and pysam); download PePr and unzip 
+    (tar zxvf PePr-version.tar.gz); go into the PePr directory and
+    type `python setup.py install`.
+
+You can test the intallation by running the example code in the 
+PePr/data directory to see if it gives the same results as provided. 
+
+USAGE
+=====
+Please visit our homepage for instructions. 
+
+

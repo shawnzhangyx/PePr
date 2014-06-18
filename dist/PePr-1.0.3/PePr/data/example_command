@@ -1,0 +1,1 @@
+python ../PePr.py -i input_rep1.bed,input_rep2.bed -c chip_rep1.bed,chip_rep2.bed -f bed -s 48,46 -w 180 -n my_test_run
