@@ -101,8 +101,14 @@ class ReadData:
                 if file not in self.data_dict_by_strands[chr]:
                     all_file_has_this_chr = False
                     break
-                max_read_f = max(self.data_dict_by_strands[chr][file]['f']+[0])
-                max_read_r = max(self.data_dict_by_strands[chr][file]['r']+[0])
+                try:  
+                    max_read_f = max(self.data_dict_by_strands[chr][file]['f']+[0])
+                except ValueError:
+                    max_read_f = 0
+                try: 
+                    max_read_r = max(self.data_dict_by_strands[chr][file]['r']+[0])
+                except ValueError: 
+                    max_read_r = 0
                 temp_max_chr = max(temp_max_chr, max_read_f, max_read_r)
             if all_file_has_this_chr is True:
                 chr_list.append(chr)
