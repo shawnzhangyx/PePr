@@ -309,11 +309,11 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
         for read in forward_read:
             try: chip_forward[(read-start)] +=1
             except IndexError:
-                pass
+                debug("index error ignored. end-start: %d. read-start: %d.", end-start, read-start)
         for read in reverse_read:
             try: chip_reverse[(read-start-readLength)] +=1
             except IndexError:
-                pass
+                debug("index error ignored. end-start: %d. read-start-readLength: %d.", end-start, read-start-readLength)
     # using input reads to remove artefacts
     if remove_artefacts is True: 
         for input in input_list:
@@ -324,11 +324,13 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
             reverse_read = reverse[numpy.where( (reverse > 
                     start+shiftSize[chip]) & (reverse < end+shiftSize[chip]) )]
             for read in forward_read:
-                input_forward[(read-start)] +=1
+                try: input_forward[(read-start)] +=1
+                except IndexError: 
+                    debug("index error ignored. end-start: %d. read-start: %d.", end-start, read-start)
             for read in reverse_read:
                 try: input_reverse[(read-start-readLength)] +=1
                 except IndexError:
-                    pass
+                    debug("index error ignored. end-start: %d. read-start-readLength: %d.", end-start, read-start-readLength)
 
         chip_both = chip_forward + chip_reverse
         input_both = input_forward + input_reverse
@@ -413,9 +415,13 @@ def shift_size_per_peak(strands_dict, chip_list, chr, start, end,
         forward = numpy.zeros(end-start)
         reverse = numpy.zeros(end-start)
         for read in forward_read:
-            forward[(read-start):(read-start+readLength)] +=1
+            try: forward[(read-start):(read-start+readLength)] +=1
+            except IndexError:
+                debug("index error ignored. end-start: %d. read-start+readLength: %d.", end-start, read-start+readLength)
         for read in reverse_read:
-            reverse[(read-start-readLength):(read-start)] +=1
+            try: reverse[(read-start-readLength):(read-start)] +=1
+            except IndexError: 
+                debug("index error ignored. end-start: %d. read-start: %d.", end-start, read-start)
         shade_max = 0
         shift_max = 0
         # Iterate from 0 to 250 bp, find the optimum shift that produce 
