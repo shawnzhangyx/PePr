@@ -1,0 +1,15 @@
+chip1	chip_rep1.bed,chip_rep2.bed
+chip2	
+difftest	False
+file_format	bed
+input1	input_rep1.bed,input_rep2.bed
+input2	
+name	my_test_run
+narrow_peak_width	False
+peaktype	broad
+remove_artefacts	False
+remove_redundant	False
+shift_size	48,46
+threshold	1e-05
+unsave_log	False
+window_size	180

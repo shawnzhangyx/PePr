@@ -307,7 +307,9 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
         reverse_read = reverse[numpy.where( (reverse > start+shiftSize[chip]) &
                 (reverse < end+shiftSize[chip]) )]
         for read in forward_read:
-            chip_forward[(read-start)] +=1
+            try: chip_forward[(read-start)] +=1
+            except IndexError:
+                pass
         for read in reverse_read:
             try: chip_reverse[(read-start-readLength)] +=1
             except IndexError:

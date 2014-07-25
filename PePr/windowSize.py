@@ -146,6 +146,8 @@ def separate_exact_by_window(readData, parameter, normalize = "Large"):
         info( "partitioning by window on \t%s...", chr)
         chr_len =readData.chr_length_dict[chr]
         row_num = chr_len/move_size - 1
+        if row_num == 0:
+            continue
         if parameter.difftest is False: 
             for idx, filename in enumerate(readData.filename_list):
                 array = count_reads_by_file(readData.data_dict[chr][filename],
