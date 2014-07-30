@@ -128,7 +128,7 @@ def negative_binomial(readData, peakfilename, swap, parameter):
     #sig_index_dict = {}
     sig_peaks_list = []    
 
-    for chr in chr_list:
+    for chr in read_dict:
 
         read_array = read_dict[chr]
         read_array[numpy.where(read_array ==0)] = 1 
@@ -186,7 +186,7 @@ def negative_binomial(readData, peakfilename, swap, parameter):
     # merge adjacent significant peaks. 
     info ("Merging adjacent significant windows...")
     final_peak_list = []
-    for chr in chr_list:
+    for chr in read_dict:
         sig_peak_list_by_chr = \
                 [item for item in sig_peaks_list if item.chr==chr]
         if len(sig_peak_list_by_chr) == 0:
