@@ -7,7 +7,7 @@ def opt_parser(argv):
     parser = OptionParser()
     parser.add_option(
             "-p", "--parameter-file", action="store", type="string",
-            dest="parameter", default="", 
+            dest="parameter", default="",
             help="provide a file that contain the parameters",
             metavar="PARAMETER-FILE")
     parser.add_option(
@@ -28,7 +28,7 @@ def opt_parser(argv):
             default="", help="input2 file names separated by comma",
             metavar="INPUT2")
     parser.add_option(
-            "-f", "--file-format", action="store", type="string", 
+            "-f", "--file-format", action="store", type="string",
             dest="file_format",
             help="bed, sam, bam, eland_multi, eland_extended, bowtie...",
             metavar="FORMAT")
@@ -69,7 +69,7 @@ def opt_parser(argv):
     parser.add_option(
             "--narrow_peak_width", action="store_true",
             dest ="narrow_peak_width", default=False,
-            help = '''Narrow peak width to contain the most 
+            help = '''Narrow peak width to contain the most
             enriched regions. Only available for SHARP peak type''')
     parser.add_option(
             "--no_log", action="store_true",
@@ -78,23 +78,23 @@ def opt_parser(argv):
     (opt, args)=parser.parse_args(argv)
     if len(argv)==1:
         parser.print_help()
-        exit(1)        
+        exit(1)
     return opt
 
 def process_opt(opt):
     ''' validate the parameters that the user specified'''
+    # initial process the filenames.
+    opt.chip1 = opt.chip1.strip().split(',')
+    opt.chip2 = opt.chip2.strip().split(',')
+    opt.input1 = opt.input1.strip().split(',')
+    opt.input2 = opt.input2.strip().split(',')
     parameter = Parameters(opt)
 
-    ## parse the chip and input filename 
-    chip1_filename_list = parameter.chip1.strip().split(',')
-    input1_filename_list = parameter.input1.strip().split(',')
-    chip2_filename_list = parameter.chip2.strip().split(',')
-    input2_filename_list = parameter.input2.strip().split(',')
     ## initialize the data structure
     read_data = ReadData(
-        chip1_filename_list, input1_filename_list,
-        chip2_filename_list, input2_filename_list,
-        parameter.difftest 
+        opt.chip1, opt.input1,
+        opt.chip2, opt.input2,
+        parameter.difftest
         )
     #add shift size validations
     return parameter, read_data

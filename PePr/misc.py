@@ -6,7 +6,8 @@ from scipy.stats import binom_test
 root_logger = logging.getLogger("")
 debug = root_logger.debug
 
-def binomial(n,p):
+
+def binomial(n, p):
     #calculate the expected maximum number of replicated reads at a single position
 
     x = 1
