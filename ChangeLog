@@ -1,5 +1,9 @@
+2014-08-22 Yanxiao Zhang <yanxiazh@umich.edu>
+	* classDef.py: Added a few exception handlers for invalid input
+	parameters. 
+
 2014-04-23 Yanxiao Zhang <yanxiazh@umich.edu>
-        * setup.py: Added. Made PePr into a python package and uploaded it up to the PyPI repository. 
+	* setup.py: Added. Made PePr into a python package and uploaded it up to the PyPI repository. 
 
 2014-04-04 Yanxiao Zhang <yanxiazh@umich.edu>
 	* sigTest.py: Removed the previous method that filter out the peaks without any strand lag; added a method to remove artefacts that either have same peak shape in ChIP and background, or are dominated by reads at less than three positions.  

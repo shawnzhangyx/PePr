@@ -302,10 +302,10 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
     for chip in chip_list:
         forward = strands_dict[chr][chip]['f']
         reverse = strands_dict[chr][chip]['r']
-        forward_read = forward[numpy.where( (forward > start-shiftSize[chip]) &
-                (forward < end-shiftSize[chip]) )]
-        reverse_read = reverse[numpy.where( (reverse > start+shiftSize[chip]) &
-                (reverse < end+shiftSize[chip]) )]
+        forward_read = forward[numpy.where( (forward >= start) &
+                (forward < end) )]
+        reverse_read = reverse[numpy.where( (reverse >= start+readLength) &
+                (reverse < end+readLength) )]
         for read in forward_read:
             try: chip_forward[(read-start)] +=1
             except IndexError:
@@ -319,10 +319,10 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
         for input in input_list:
             forward = strands_dict[chr][input]['f']
             reverse = strands_dict[chr][input]['r']
-            forward_read = forward[numpy.where( (forward > 
-                    start-shiftSize[chip]) & (forward < end-shiftSize[chip]) )]
-            reverse_read = reverse[numpy.where( (reverse > 
-                    start+shiftSize[chip]) & (reverse < end+shiftSize[chip]) )]
+            forward_read = forward[numpy.where( (forward >= 
+                    start) & (forward < end) )]
+            reverse_read = reverse[numpy.where( (reverse >=
+                    start+readLength) & (reverse < end+readLength) )]
             for read in forward_read:
                 try: input_forward[(read-start)] +=1
                 except IndexError: 

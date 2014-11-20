@@ -19,7 +19,7 @@ def bam_parse(filename_list):
     line = infile.fetch().next()
     length = line.alen
     infile.close()
-    info("the lenghth of the reads is %s", length)
+    info("the length of the reads is %s", length)
 
     for filename in filename_list: 
         infile = pysam.Samfile(filename, 'rb')
@@ -64,7 +64,7 @@ def sam_parse(filename_list):
             length = len(words[9])
             break
     infile.close()
-    info("the lenghth of the reads is %s", length)
+    info("the length of the reads is %s", length)
 
     for filename in filename_list:
         infile = open(filename, 'r')
@@ -110,7 +110,7 @@ def bowtie_parse(filename_list, chr_list):
     line = infile.readline()
     words = line.strip().split()
     length = len(words[4])
-    info("the lenghth of the reads is %s", length)
+    info("the length of the reads is %s", length)
     infile.close()
 
     for filename in filename_list:

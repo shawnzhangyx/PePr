@@ -7,7 +7,7 @@ input2	['']
 name	my_test_run
 narrow_peak_width	False
 peaktype	broad
-remove_artefacts	False
+remove_artefacts	True
 remove_redundant	False
 shift_size	48,46
 threshold	1e-05
