@@ -1,3 +1,9 @@
+2014-12-02 Yanxiao Zhang <yanxiazh@umich.edu> 
+	* from now on, users can submit differential analysis without input samples. 
+
+2014-11-21 Yanxiao Zhang <yanxiazh@umich.edu>
+	* sigTest.py: fixed the coordinates overflow error in the post-processing step. 
+
 2014-08-22 Yanxiao Zhang <yanxiazh@umich.edu>
 	* classDef.py: Added a few exception handlers for invalid input
 	parameters. 

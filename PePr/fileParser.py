@@ -148,6 +148,7 @@ def bed_parse(filename_list):
     '''Parsing BED format files'''
     data_dict={} 
     for filename in filename_list:
+	print filename
         infile = open(filename, 'r')
         info("retrieving reads from file: %s", filename)
         for line in infile:

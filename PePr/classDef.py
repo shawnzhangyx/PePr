@@ -15,14 +15,21 @@ class ReadData:
         self.reads_dict = {}
         self.chip1_filename_list = chip1
         self.input1_filename_list = input1
+        if '' in self.input1_filename_list: 
+            self.input1_filename_list.remove('')
         self.chip2_filename_list = chip2
         self.input2_filename_list = input2
+        if '' in self.input2_filename_list:
+            self.input2_filename_list.remove('')
         self.chip_filename_list = chip1[:]
         self.input_filename_list = input1[:]
         if diff_test is True:
             self.chip_filename_list += chip2
             self.input_filename_list += input2
         self.filename_list = self.chip_filename_list + self.input_filename_list
+	print self.filename_list
+	# remove duplicated file names. 
+	self.filename_list = list(set(self.filename_list))
         self.chr_list = []
         self.chr_length_dict = {}
         self.read_total_per_file = {}
@@ -156,13 +163,14 @@ class Parameters:
         # if any of the required files are missing, raise an exception.
         if self.chip1 == ['']:
             raise Exception("Please specify ChIP-1 sample names")
-        if self.input1 == ['']:
+        if self.input1 == [''] and self.difftest is False:
             raise Exception("Please specify input-1 sample names")
         if self.difftest is True:  # also check group 2 files if difftest
             if self.chip2 == ['']:
                 raise Exception("Please specify ChIP-2 sample names")
-            if self.input2 == ['']:
-                raise Exception("Please specify input-2 sample names")
+        # will not test if input2 is available. 
+        #    if self.input2 == ['']:
+        #        raise Exception("Please specify input-2 sample names")
         if len(self.chip1) < 2 and len(self.input1) <2: 
             raise Exception('''Only 1 replicates detected. To use PePr, at least
                 two replicates are required''')

@@ -168,32 +168,33 @@ def separate_exact_by_window(readData, parameter, normalize = "Large"):
                     chip1_array = array
                 else:
                     chip1_array = numpy.column_stack((chip1_array, array))
-            if parameter.chip1_matched_input is True: 
-                for idx, filename in enumerate(readData.input1_filename_list):
-                    array = count_reads_by_file(
-                            readData.data_dict[chr][filename],
-                            move_size, row_num)
-                    array = (
-                            array*readData.normalization_constant[filename])
-                    if idx ==0:
-                        input1_array = array
-                    else:
-                        input1_array = numpy.column_stack((input1_array, array))
-            else:
-                for idx, filename in enumerate(readData.input1_filename_list):
-                    array = count_reads_by_file(
-                            readData.data_dict[chr][filename],
-                            move_size, row_num)
-                    array = (
-                            array*readData.normalization_constant[filename])
-                    if idx ==0:
-                        input1_array = array
-                    else:
-                        input1_array += array
-                input1_array /= len(readData.input1_filename_list)
-                input1_array.resize(row_num, 1)
-            chip1_array -= input1_array
-            chip1_array[chip1_array<0] = 0
+            if len(readData.input1_filename_list) != 0:
+                if parameter.chip1_matched_input is True: 
+                    for idx, filename in enumerate(readData.input1_filename_list):
+                        array = count_reads_by_file(
+                                readData.data_dict[chr][filename],
+                                move_size, row_num)
+                        array = (
+                                array*readData.normalization_constant[filename])
+                        if idx ==0:
+                            input1_array = array
+                        else:
+                            input1_array = numpy.column_stack((input1_array, array))
+                else:
+                    for idx, filename in enumerate(readData.input1_filename_list):
+                        array = count_reads_by_file(
+                                readData.data_dict[chr][filename],
+                                move_size, row_num)
+                        array = (
+                                array*readData.normalization_constant[filename])
+                        if idx ==0:
+                            input1_array = array
+                        else:
+                            input1_array += array
+                    input1_array /= len(readData.input1_filename_list)
+                    input1_array.resize(row_num, 1)
+                chip1_array -= input1_array
+                chip1_array[chip1_array<0] = 0
             for idx, filename in enumerate(readData.chip2_filename_list):
                 array = count_reads_by_file(readData.data_dict[chr][filename],
                                             move_size, row_num)
@@ -203,30 +204,31 @@ def separate_exact_by_window(readData, parameter, normalize = "Large"):
                     chip2_array = array
                 else:
                     chip2_array = numpy.column_stack((chip2_array, array))
-            if parameter.chip2_matched_input is True:
-                for idx, filename in enumerate(readData.input2_filename_list):
-                    array = count_reads_by_file(readData.data_dict[chr][filename],
-                                                move_size, row_num)
-                    array = (
-                            array*readData.normalization_constant[filename])
-                    if idx ==0:
-                        input2_array = array
-                    else:
-                        input2_array = numpy.column_stack((input2_array, array))
-            else:
-                for idx, filename in enumerate(readData.input2_filename_list):
-                    array = count_reads_by_file(readData.data_dict[chr][filename],
-                                                move_size, row_num)
-                    array = (
-                            array*readData.normalization_constant[filename])
-                    if idx ==0:
-                        input2_array = array
-                    else:
-                        input2_array += array
-                input2_array /= len(readData.input2_filename_list)
-                input2_array.resize(row_num, 1)
-            chip2_array -= input2_array
-            chip2_array[chip2_array<0] = 0
+            if len(readData.input1_filename_list) != 0:
+                if parameter.chip2_matched_input is True:
+                    for idx, filename in enumerate(readData.input2_filename_list):
+                        array = count_reads_by_file(readData.data_dict[chr][filename],
+                                                    move_size, row_num)
+                        array = (
+                                array*readData.normalization_constant[filename])
+                        if idx ==0:
+                            input2_array = array
+                        else:
+                            input2_array = numpy.column_stack((input2_array, array))
+                else:
+                    for idx, filename in enumerate(readData.input2_filename_list):
+                        array = count_reads_by_file(readData.data_dict[chr][filename],
+                                                    move_size, row_num)
+                        array = (
+                                array*readData.normalization_constant[filename])
+                        if idx ==0:
+                            input2_array = array
+                        else:
+                            input2_array += array
+                    input2_array /= len(readData.input2_filename_list)
+                    input2_array.resize(row_num, 1)
+                chip2_array -= input2_array
+                chip2_array[chip2_array<0] = 0
             chr_array = numpy.column_stack((chip1_array, chip2_array))
         data_by_window_dict[chr] = chr_array
     readData.reads_dict = data_by_window_dict
