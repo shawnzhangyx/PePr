@@ -1,6 +1,6 @@
 
 > Timestamp: 03-15-2015 Yanxiao Zhang troublezhang@gmail.com
-============================================================
+------------------------------------------------------------
 
 ###INTRODUCTION
 PePr is a ChIP-Seq Peak-calling and Prioritization pipeline 
