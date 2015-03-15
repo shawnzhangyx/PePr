@@ -3,8 +3,8 @@
 Timestamp: <03-15-2015 Yanxiao Zhang troublezhang@gmail.com>
 -----------------------
 
-INTRODUCTION
-============
+## INTRODUCTION
+
 
 PePr is a ChIP-Seq Peak-calling and Prioritization pipeline 
 that uses a sliding window approach and models read counts across 
@@ -27,5 +27,6 @@ INSTALL & USAGE
 ===============
 Please visit our wiki page(https://ones.ccmb.med.umich.edu/wiki/PePr/) for instructions. 
 
-CITATION
+## CITATION
 
+Zhang Y, Lin YH, Johnson TD, Rozek LS, Sartor MA. PePr: A peak-calling prioritization pipeline to identify consistent or differential peaks from replicated ChIP-Seq data. Bioinformatics. 2014.
