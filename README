@@ -5,6 +5,7 @@ Timestamp: <03-15-2015 Yanxiao Zhang troublezhang@gmail.com>
 
 INTRODUCTION
 ============
+
 PePr is a ChIP-Seq Peak-calling and Prioritization pipeline 
 that uses a sliding window approach and models read counts across 
 replicates and between groups with a negative binomial distribution. 
@@ -26,4 +27,5 @@ INSTALL & USAGE
 ===============
 Please visit our wiki page(https://ones.ccmb.med.umich.edu/wiki/PePr/) for instructions. 
 
+CITATION
 
