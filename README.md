@@ -14,10 +14,9 @@ post-processing steps are also made available to filter out peaks
 not exhibiting the expected shift size and/or to narrow the width of peaks.
 
 ###LINKS
-
-https://github.com/troublezhang/PePr/ # Source code
-https://ones.ccmb.med.umich.edu/wiki/PePr/ # Manual
-https://pypi.python.org/pypi/pepr #PyPI package index
+* https://github.com/troublezhang/PePr/ # Source code
+* https://ones.ccmb.med.umich.edu/wiki/PePr/ # Manual
+* https://pypi.python.org/pypi/pepr #PyPI package index
 
 
 ###INSTALL & USAGE
