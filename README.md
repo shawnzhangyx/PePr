@@ -22,5 +22,9 @@ not exhibiting the expected shift size and/or to narrow the width of peaks.
 ###INSTALL & USAGE
 Please visit our wiki page(https://ones.ccmb.med.umich.edu/wiki/PePr/) for instructions. 
 
+### QUESTIONS?
+Questions are preferred to be posted on https://ones.ccmb.med.umich.edu/, you'll very likely find similar problems in there too (https://ones.ccmb.med.umich.edu/tags/PePr/?tab=Summary). You're also welcome to shoot me an e-mail at yanxiazh@umich.edu, I'll try replying to you as soon as possible. 
+
+
 ###CITATION
 Zhang Y, Lin YH, Johnson TD, Rozek LS, Sartor MA. PePr: A peak-calling prioritization pipeline to identify consistent or differential peaks from replicated ChIP-Seq data. Bioinformatics. 2014.
