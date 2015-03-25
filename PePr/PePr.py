@@ -52,11 +52,12 @@ def main(argv):
                                    swap, parameter)
     # 7. Write to a file that record the command and parameters.     
     parameter.write_parameter_to_file() 
+    info ("PePr finished running, thanks for all the wait!")
  
 if __name__ == '__main__':
     try: main(sys.argv)
     except KeyboardInterrupt: 
-        print "user interrupted me"
+        print ("user interrupted me")
         
         
 

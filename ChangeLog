@@ -1,4 +1,11 @@
+2015-01-27 Yanxiao Zhang <yanxiazh@umich.edu>
+	* version 1.0.6
+	* enable custom normalization or NO normalization.
+	* fixed the filename list bug. 
+	* add a message when PePr finishes running
+
 2014-12-02 Yanxiao Zhang <yanxiazh@umich.edu> 
+	* version 1.0.5
 	* from now on, users can submit differential analysis without input samples. 
 
 2014-11-21 Yanxiao Zhang <yanxiazh@umich.edu>

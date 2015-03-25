@@ -20,7 +20,7 @@ window_logger = logging.getLogger("windowSizeEst")
 def get_window_size2(array, bin=20, iter=100):
     # this is the function that estimate the window size. 
     chr_len = array.size
-    rowNum = chr_len/bin
+    rowNum = int(chr_len/bin)
     array_window = std.as_strided(array, (rowNum, bin), 
             (bin*array.itemsize, 1*array.itemsize))
     array_window = numpy.sum(array_window, 1)
@@ -127,7 +127,7 @@ def estimate_window_size(readData, parameter):
 def count_reads_by_file(read_data, bin, row_num):
     array = numpy.zeros(row_num, dtype=numpy.float64)
     for x in read_data:
-        try: array[x/bin] += 1
+        try: array[int(x/bin)] += 1
         except IndexError:    pass  # out of range
     if any(array<0):
         error("array has reads less than 0")
@@ -140,16 +140,16 @@ def separate_exact_by_window(readData, parameter, normalize = "Large"):
     window_size = parameter.window_size
     data_by_window_dict = {}
     index_dict = {}
-    move_size = window_size/2
+    move_size = int(window_size/2)
 
     for chr in readData.chr_list:
         info( "partitioning by window on \t%s...", chr)
         chr_len =readData.chr_length_dict[chr]
-        row_num = chr_len/move_size - 1
+        row_num = int(chr_len/move_size) - 1
         if row_num <= 0:
             continue
         if parameter.difftest is False: 
-            for idx, filename in enumerate(readData.filename_list):
+            for idx, filename in enumerate(readData.chip1_filename_list):
                 array = count_reads_by_file(readData.data_dict[chr][filename],
                                             move_size, row_num)
                 array = (
@@ -157,7 +157,13 @@ def separate_exact_by_window(readData, parameter, normalize = "Large"):
                 if idx ==0:
                     chr_array = array
                 else:
-                    chr_array = numpy.column_stack((chr_array, array))   
+                    chr_array = numpy.column_stack((chr_array, array))
+            for idx, filename in enumerate(readData.input1_filename_list):
+                array = count_reads_by_file(readData.data_dict[chr][filename],
+                                            move_size, row_num)
+                array = (
+                        array*readData.normalization_constant[filename])
+                chr_array = numpy.column_stack((chr_array, array))
         else: 
             for idx, filename in enumerate(readData.chip1_filename_list):
                 array = count_reads_by_file(readData.data_dict[chr][filename],
@@ -245,16 +251,30 @@ def separate_exact_by_window(readData, parameter, normalize = "Large"):
 
 def estimate_normalization_constant(readData, parameter): 
     '''Estimate the normalization constant for all samples'''
+    # if user tell PePr not to estimate normalization constants
+    if parameter.normalization != "YES":
+        if parameter.normalization == "NO":
+            norm_constants = [1.0]*len(readData.filename_list)
+        else:
+            norm = parameter.normalization.strip().split(',')
+            if len(norm) != len(readData.filename_list):
+                raise Exception('''The number of normalization constants does
+                not match the number of samples. Quiting..''')
+            else: 
+                norm_constants = [float(x) for x in norm]
+        for idx,file in enumerate(readData.filename_list):
+            readData.normalization_constant[file] = norm_constants[idx]
+        return  
     # Split the genome into 1kb windows.
     bin = 1000
     array_dict = {}
     for file in readData.filename_list: 
         array = numpy.array([], dtype=numpy.float64)
         for chr in readData.chr_list:
-            row_num = readData.chr_length_dict[chr]/bin
+            row_num = int(readData.chr_length_dict[chr]/bin)
             array_by_chr = numpy.zeros(row_num, dtype=numpy.float64)
             for x in readData.data_dict[chr][file]:
-                try: array_by_chr[x/bin] += 1
+                try: array_by_chr[int(x/bin)] += 1
                 except IndexError: pass 
             array = numpy.append(array, array_by_chr)
         array_dict[file] = array
@@ -288,7 +308,7 @@ def estimate_input_normalization(ref, target):
     MIN_GENOME_COVERAGE = 0.75
     pre_ratio = 1
     file = open("input_norm.txt",'w')
-    for r_cut in xrange(1, READ_MAX):
+    for r_cut in range(1, READ_MAX):
         index = numpy.where(combined <= r_cut)[0]
         percent_genome_covered = float(len(index))/len(combined)
         ratio = numpy.sum(ref[index])/numpy.sum(target[index])

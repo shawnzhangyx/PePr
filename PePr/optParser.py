@@ -72,6 +72,12 @@ def opt_parser(argv):
             help = '''Narrow peak width to contain the most
             enriched regions. Only available for SHARP peak type''')
     parser.add_option(
+            "--custom_normalization", action="store",
+            type="string", dest="normalization", default="YES", 
+            help='''You can choose not to normalize the reads by 
+            specifying 'NO' or provide your own normalization 
+            constants separated by commas.''')
+    parser.add_option(
             "--no_log", action="store_true",
             dest = "unsave_log", default=False,
             help = "Disable saving the log files")

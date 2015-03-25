@@ -1,0 +1,1 @@
+chr	start	end	width	p-value	q-value	chip_input_ratio	tag_monopoly	strand_overlap_original	strand_overlap_shifted

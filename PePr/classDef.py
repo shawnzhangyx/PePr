@@ -27,9 +27,9 @@ class ReadData:
             self.chip_filename_list += chip2
             self.input_filename_list += input2
         self.filename_list = self.chip_filename_list + self.input_filename_list
-	print self.filename_list
-	# remove duplicated file names. 
-	self.filename_list = list(set(self.filename_list))
+        print(self.filename_list)
+        # remove duplicated file names. 
+        self.filename_list = list(set(self.filename_list))
         self.chr_list = []
         self.chr_length_dict = {}
         self.read_total_per_file = {}
@@ -140,7 +140,7 @@ class Parameters:
             key = items[0].strip().lower()
             value = items[1].strip()
         pass
-        # ---- will implement this at a later time. ---- #
+        # ---- will implement this at a later time. 1/26/2015 ---- #
 
     def process_command_line_option(self, opt):
         self.chip1 = opt.chip1
@@ -157,6 +157,7 @@ class Parameters:
         self.peaktype = opt.peaktype.lower()
         self.remove_artefacts = opt.remove_artefacts
         self.narrow_peak_width = opt.narrow_peak_width
+        self.normalization = opt.normalization
         self.unsave_log = opt.unsave_log
 
     def validate_parameters(self):
@@ -221,7 +222,7 @@ class Parameters:
     def write_parameter_to_file(self):
         fileout = open(self.name+"__PePr_parameters.txt", 'w')
         attributes = vars(self)
-        keys_list = attributes.keys()
+        keys_list = list(attributes.keys())
         keys_list.sort()
         for keys in keys_list:
             fileout.write(keys+'\t'+str(attributes[keys])+'\n')

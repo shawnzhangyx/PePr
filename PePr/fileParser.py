@@ -16,7 +16,7 @@ def bam_parse(filename_list):
     '''Parsing bam format files.'''
     data_dict = {}
     infile = pysam.Samfile(filename_list[0], 'rb')
-    line = infile.fetch().next()
+    line = infile.fetch().__next__()
     length = line.alen
     infile.close()
     info("the length of the reads is %s", length)
@@ -148,7 +148,7 @@ def bed_parse(filename_list):
     '''Parsing BED format files'''
     data_dict={} 
     for filename in filename_list:
-	print filename
+        print(filename)
         infile = open(filename, 'r')
         info("retrieving reads from file: %s", filename)
         for line in infile:

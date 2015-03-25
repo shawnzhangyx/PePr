@@ -23,9 +23,9 @@ def median(list):
     '''Will return the median of the list of numbers '''
     list.sort()
     if len(list) % 2 == 0:
-        med = (list[len(list)/2]+list[len(list)/2-1])/2
+        med = (list[int(len(list)/2)]+list[int(len(list)/2-1)])/2
     else:
-        med = list[(len(list)-1)/2]
+        med = list[int((len(list)-1)/2)]
     return med
 
 def erfcc(x):

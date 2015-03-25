@@ -20,7 +20,7 @@ def shift_size_per_chrom(forward, reverse, file=-1):
     optimum_shift = 0
     
     # iterate from 0 offset to shift_max, to find which offset produce the maximal overlap.  
-    for offset in xrange(1, shift_max):
+    for offset in range(1, shift_max):
         
         overlapping = set([x+offset for x in forward]) & set([y-offset for y in reverse])
         overlapping = len(list(overlapping))

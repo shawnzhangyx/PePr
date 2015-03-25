@@ -63,7 +63,7 @@ def estimate_area_dispersion_factor(read, m, n, idx, peaktype, diff_test):
     elif weighted_log_likelihood(BASE**left, m, n,
             read[(idx-N_WINDOWS):(idx+N_WINDOWS+1)], diff_test) < 0:
         return BASE**left
-    for times in xrange(N_ITERATION):
+    for times in range(N_ITERATION):
         temp = (right+left)/2
         if weighted_log_likelihood(10**temp, m, n,
                 read[(idx-N_WINDOWS):(idx+N_WINDOWS+1)], diff_test) > 0:
@@ -75,12 +75,14 @@ def estimate_area_dispersion_factor(read, m, n, idx, peaktype, diff_test):
 
 def cal_FDR(peak_list, num_tests):
     '''Calculate the Benjamini-Hochberg FDR'''
+    if len(peak_list)==0:
+        return peak_list
     peak_list = sorted(peak_list, key=attrgetter('pvalue'))
     #calculate BH q-values
     q_list = [item.pvalue*num_tests/(idx+1) 
             for idx, item in enumerate(peak_list)]
     q_min = q_list[-1]
-    for i in xrange(len(q_list)-1, -1, -1):
+    for i in range(len(q_list)-1, -1, -1):
         if q_list[i] >= q_min:
             q_list[i] = q_min
         else:
@@ -196,7 +198,7 @@ def negative_binomial(readData, peakfilename, swap, parameter):
         sig_qval = [item.qvalue for item in sig_peak_list_by_chr]     
         sig_start, sig_end, sig_pval, sig_qval = merge_sig_window(sig_index,
                 sig_pval, sig_qval, peaktype)
-        for idx in xrange(len(sig_start)):
+        for idx in range(len(sig_start)):
             final_peak = [chr, sig_start[idx]*windowsize/2, 
                           sig_end[idx]*windowsize/2+windowsize,
                           sig_pval[idx], sig_qval[idx]]
@@ -204,7 +206,7 @@ def negative_binomial(readData, peakfilename, swap, parameter):
 
     # post-processing 
     if remove_artefacts is True: 
-         dump_file = open(peakfilename[:-10]+"_filtered_peaks.txt","w")
+         dump_file = open(peakfilename[:-10]+"_removed_peaks.txt","w")
          dump_file.write("chr\tstart\tend\twidth\tp-value\tq-value\t")
          dump_file.write("chip_input_ratio\ttag_monopoly\t")
          dump_file.write("strand_overlap_original\tstrand_overlap_shifted\n")
@@ -229,7 +231,8 @@ def negative_binomial(readData, peakfilename, swap, parameter):
                     readData.shift_size, readData.read_length,
                     narrow_peak, remove_artefacts)
             if remove_artefacts and (chip_input_ratio > 0.5 or 
-                    tag_monopoly > 0.5 or (overlap_orig > 0.2 and
+                    # tag_monopoly > 0.5 or  #will not remove tag monopoly cases. 
+                    (overlap_orig > 0.2 and
                 overlap_roll/overlap_orig < 0.5)):
                 dump_file.write(chr+"\t" + str(start) + '\t' + str(end) + '\t' +
                         str(end-start) + '\t' + str(pval) + '\t' + str(qval) + 
@@ -365,14 +368,14 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
         sum_reverse = 0
         if sum(chip_forward) > 0: 
             chip_forward = chip_forward/sum(chip_forward)
-            for i in xrange(end-start): 
+            for i in range(end-start): 
                 sum_forward += chip_forward[i]
                 if sum_forward > 0.2: 
                     new_start = start + i
                     break
         if sum(chip_reverse) > 0:
             chip_reverse = chip_reverse/sum(chip_reverse)
-            for i in xrange(end-start-1, -1, -1):
+            for i in range(end-start-1, -1, -1):
                 sum_reverse += chip_reverse[i]
                 if sum_reverse > 0.2:
                     new_end = start + i
@@ -426,7 +429,7 @@ def shift_size_per_peak(strands_dict, chip_list, chr, start, end,
         shift_max = 0
         # Iterate from 0 to 250 bp, find the optimum shift that produce 
         # the most overlap between the two strands. 
-        for shift in xrange(-readLength, 250-readLength): 
+        for shift in range(-readLength, 250-readLength): 
             forward_temp = numpy.roll(forward, shift)
             shade = numpy.sum(numpy.min(numpy.vstack(
                     [forward_temp, reverse]), 0))

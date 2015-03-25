@@ -7,6 +7,7 @@ README for PePr v1.0.*
 HOMEPAGE
 =======
 https://code.google.com/p/pepr-chip-seq/
+http://ones.ccmb.med.umich.edu/wiki/PePr/
 ---------------------------------------
 
 INTRODUCTION
@@ -24,6 +25,8 @@ not exhibiting the expected shift size and/or to narrow the width of peaks.
 
 INSTALL
 =======
+* visit http://ones.ccmb.med.umich.edu/wiki/PePr/ for details. 
+
 if you want to use pip to install PePr(recommended): 
     if pip package is intalled in your system:
         simply run `pip install PePr`
@@ -40,6 +43,7 @@ PePr/data directory to see if it gives the same results as provided.
 
 USAGE
 =====
-Please visit our homepage for instructions. 
+* Please visit http://ones.ccmb.med.umich.edu/wiki/PePr/ for instructions.
+There are also very limited examples in the PePr/data folder. 
 
 
