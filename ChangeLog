@@ -1,3 +1,7 @@
+2015-03-24 Yanxiao Zhang <yanxiazh@umich.edu>
+	* version 1.0.7
+	* refactor a few functions, now should work with python 3.4.
+
 2015-01-27 Yanxiao Zhang <yanxiazh@umich.edu>
 	* version 1.0.6
 	* enable custom normalization or NO normalization.

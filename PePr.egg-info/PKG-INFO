@@ -1,0 +1,16 @@
+Metadata-Version: 1.1
+Name: PePr
+Version: 1.0.7
+Summary: Peak-calling and Prioritization pipeline for replicated ChIP-Seq data
+Home-page: https://code.google.com/p/pepr-chip-seq/
+Author: Yanxiao Zhang
+Author-email: troublezhang@gmail.com
+License: GNU GPL v3
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Classifier: Programming Language :: Python
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
