@@ -6,7 +6,8 @@
 2015-03-24 Yanxiao Zhang <yanxiazh@umich.edu>
 	* version 1.0.7
 	* refactor a few functions, now should work with python 3.4.
-
+	* change dependency to numpy==1.6.0 and scipy==0.14.0, which is the working version under development. 
+	
 2015-01-27 Yanxiao Zhang <yanxiazh@umich.edu>
 	* version 1.0.6
 	* enable custom normalization or NO normalization.
