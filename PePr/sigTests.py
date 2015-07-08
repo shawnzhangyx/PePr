@@ -381,9 +381,9 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
                     new_end = start + i
                     break
         if sum(chip_forward) == 0:
-            new_start = new_end - 2*shiftSize
+            new_start = new_end - misc.median(2*shiftSize.values())
         if sum(chip_reverse) == 0:
-            new_end = new_start + 2*shiftSize
+            new_end = new_start + misc.median(2*shiftSize.values())
         start = new_start
         end = new_end
 

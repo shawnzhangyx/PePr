@@ -152,31 +152,27 @@ def bed_parse(filename_list):
         infile = open(filename, 'r')
         info("retrieving reads from file: %s", filename)
         for line in infile:
-            line = line.strip().split()
-            chr=line[0]
-            strand = line[5]
+            chr,start,end,col3,col4,strand = line.strip().split()
             if strand == '+':
-                pos = int(line[1])  # genomic position
-                try: data_dict[chr][filename]['f'].append(pos)
+                try: data_dict[chr][filename]['f'].append(int(start))
                 except KeyError:
                     if chr not in data_dict:
                         data_dict[chr] = {}
                     data_dict[chr][filename] = {}
-                    data_dict[chr][filename]['f'] =[pos]
+                    data_dict[chr][filename]['f'] =[int(start)]
                     data_dict[chr][filename]['r'] =[]
             elif strand == '-':
-                pos = int(line[2])-1
-                try: data_dict[chr][filename]['r'].append(pos)
+                try: data_dict[chr][filename]['r'].append(int(end)-1)
                 except KeyError:
                     if chr not in data_dict:
                         data_dict[chr] = {}
                     data_dict[chr][filename] = {}
                     data_dict[chr][filename]['f'] =[]
-                    data_dict[chr][filename]['r'] =[pos]
+                    data_dict[chr][filename]['r'] =[int(end)-1]
             else:
                 print("strand error")
         infile.close()
-    return data_dict, int(line[2])-int(line[1])  # read_length
+    return data_dict, int(end)-int(start)  # read_length
 
 def process_illumina_match(align, mismatch, length, format):
     words = align.split(',')
