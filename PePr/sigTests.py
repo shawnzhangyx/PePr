@@ -2,6 +2,7 @@
 # initialize libraries.
 import numpy
 import logging
+import misc
 from classDef import Peak
 from scipy.special import psi
 from scipy.stats.distributions import norm
