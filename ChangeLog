@@ -1,3 +1,6 @@
+2015-08-05 Yanxiao Zhang <yanxiazh@umich.edu>
+	* Bug fixes for the refining peak width.
+
 2015-04-07 Yanxiao Zhang <yanxiazh@umich.edu>
 	* Change dependencies on Numpy and Scipy to 
 		'numpy>=1.6.0'

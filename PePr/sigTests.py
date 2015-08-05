@@ -381,6 +381,10 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
                 if sum_reverse > 0.2:
                     new_end = start + i
                     break
+        # there is no reads in the peak. 
+        if sum(chip_forward)+sum(chip_reverse) == 0: 
+            new_start = new_end = (start+end)/2
+
         if sum(chip_forward) == 0:
             new_start = new_end - misc.median(2*shiftSize.values())
         if sum(chip_reverse) == 0:
