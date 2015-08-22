@@ -1,5 +1,5 @@
 
-> Timestamp: 03-15-2015 Yanxiao Zhang troublezhang@gmail.com
+> Timestamp: 03-15-2015 Yanxiao Zhang zhangyx.shawn@gmail.com
 ------------------------------------------------------------
 
 ###INTRODUCTION
