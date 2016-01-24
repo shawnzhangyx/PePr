@@ -24,7 +24,7 @@ setup(name="PePr",
           ],
       entry_points={
           'console_scripts': [
-              'PePr=PePr.PePr:main',
+              'PePr=PePr.PePr:argless_main',
           ]
       }
 )
