@@ -17,6 +17,7 @@ from classDef import Parameters
 
 
 def argless_main():
+    '''setuptools entry_points take no arguments, wrap main instead'''
     main(sys.argv)
 
 
@@ -40,7 +41,7 @@ def main(argv):
     windowSize.estimate_normalization_constant(readData, parameter)
     # 5. windowSize estimation and split reads into windows
     windowSize.estimate_window_size(readData, parameter)
-    info (" The windowSize is %s", parameter.window_size)
+    info(" The windowSize is %s", parameter.window_size)
     windowSize.separate_exact_by_window(readData, parameter)
     # 6. calling peaks
     if parameter.difftest is False:
@@ -57,9 +58,10 @@ def main(argv):
                                    swap, parameter)
     # 7. Write to a file that record the command and parameters.
     parameter.write_parameter_to_file()
-    info ("PePr finished running, thanks for all the wait!")
+    info("PePr finished running, thanks for all the wait!")
 
 if __name__ == '__main__':
-    try: main(sys.argv)
+    try:
+        main(sys.argv)
     except KeyboardInterrupt:
         print ("user interrupted me")

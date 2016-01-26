@@ -1,7 +1,7 @@
-#from distutils.core import setup
+# from distutils.core import setup
 from setuptools import setup, find_packages
 setup(name="PePr",
-      version="1.0.10",
+      version="1.0.9",
       description="Peak-calling and Prioritization pipeline for replicated ChIP-Seq data",
       author="Yanxiao Zhang",
       author_email="troublezhang@gmail.com",
@@ -16,7 +16,7 @@ setup(name="PePr",
           "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
           ],
       packages=find_packages(),
-      package_data={"PePr":['data/*.bed']},
+      package_data={"PePr": ['data/*.bed']},
       install_requires=[
           'numpy>=1.6.0',
           'scipy>=0.14.0',
@@ -25,6 +25,6 @@ setup(name="PePr",
       entry_points={
           'console_scripts': [
               'PePr=PePr.PePr:argless_main',
-          ]
-      }
-)
+              ]
+          }
+      )
