@@ -14,6 +14,7 @@ PePr/windowSize.py
 PePr.egg-info/PKG-INFO
 PePr.egg-info/SOURCES.txt
 PePr.egg-info/dependency_links.txt
+PePr.egg-info/entry_points.txt
 PePr.egg-info/requires.txt
 PePr.egg-info/top_level.txt
 PePr/data/chip_rep1.bed
