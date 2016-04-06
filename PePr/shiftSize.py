@@ -5,11 +5,8 @@ import logConfig
 import numpy
 
 
-root_logger =  logging.getLogger("")
-info = root_logger.info
-debug = root_logger.debug
-warning = root_logger.warning
-shift_logger = logging.getLogger("shiftSizeEst")
+info = logging.info
+debug = logging.debug
 
 def shift_size_per_chrom(forward, reverse, file=-1):
     #estimate the shift size for each chromosome separately. 

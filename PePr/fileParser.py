@@ -8,8 +8,7 @@ import numpy
 import pysam
 
 
-root_logger = logging.getLogger("")
-info = root_logger.info
+info = logging.info
 
 
 def bam_parse(filename_list):

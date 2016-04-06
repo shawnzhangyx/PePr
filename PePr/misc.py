@@ -3,8 +3,7 @@ from math import exp
 import logging
 from scipy.stats import binom_test
 
-root_logger = logging.getLogger("")
-debug = root_logger.debug
+debug = logging.debug
 
 
 def binomial(n, p):

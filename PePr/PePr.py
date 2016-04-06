@@ -5,8 +5,9 @@ import re
 import os
 import sys
 import logging
+import time
 
-import logConfig
+#import logConfig
 import optParser
 import fileParser
 import shiftSize
@@ -21,11 +22,14 @@ def argless_main():
     main(sys.argv)
 
 
+
 def main(argv):
+
+
     # initialize the logger
-    root_logger = logging.getLogger("")
-    debug = root_logger.debug
-    info = root_logger.info
+    debug = logging.debug
+    info = logging.info
+
     # performing the option parser
     opt = optParser.opt_parser(argv)
     parameter, readData = optParser.process_opt(opt)

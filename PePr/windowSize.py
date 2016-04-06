@@ -10,12 +10,8 @@ from scipy.stats import rankdata
 import misc
 import logging
 
-root_logger = logging.getLogger("")
-debug = root_logger.debug
-info = root_logger.info
-error = root_logger.error
-
-window_logger = logging.getLogger("windowSizeEst")
+debug = logging.debug
+info = logging.info
 
 def get_window_size2(array, bin=20, iter=100):
     # this is the function that estimate the window size. 

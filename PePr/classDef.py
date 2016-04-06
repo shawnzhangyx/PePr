@@ -1,10 +1,10 @@
 import logging
 
+import logConfig
 import misc
 
-rootlogger = logging.getLogger("")
-info = rootlogger.info
-debug = rootlogger.debug
+info = logging.info
+debug = logging.debug
 
 
 class ReadData:
@@ -131,6 +131,8 @@ class Parameters:
         else:
             self.process_command_line_option(opt)
         self.validate_parameters()
+        # --- initialize logging --- #
+        logConfig.startLog(opt.name)
 
     def process_parameter_file(self, parameter_file):
         # using a case/switch commands

@@ -8,9 +8,8 @@ from scipy.special import psi
 from scipy.stats.distributions import norm
 from operator import attrgetter
 
-root_logger = logging.getLogger("")
-debug = root_logger.debug
-info = root_logger.info
+debug = logging.debug
+info = logging.info
 
 def get_candidate_window2(read, x, y, repx, repy, threshold):
     # using PHI = 1e6 to prescreen the genome 
