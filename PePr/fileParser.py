@@ -102,47 +102,7 @@ def sam_parse(filename_list):
         infile.close()
     return data_dict, length
 
-def bowtie_parse(filename_list, chr_list):
-    #parsing bowtie format files
-    data_dict = {} 
-    infile = open(filename_list[0], 'r')
-    line = infile.readline()
-    words = line.strip().split()
-    length = len(words[4])
-    info("the length of the reads is %s", length)
-    infile.close()
-
-    for filename in filename_list:
-        infile = open(filename, 'r')
-        info("retrieving reads from file : %s", filename)
-
-        for line in infile:
-            line = line.strip().split()
-            chr = line[2]
-            strand = line[1]
-            pos = int(line[3])
-
-            if strand == '+':
-                try: data_dict[chr][filename]['f'].append(pos)
-                except KeyError:
-                    if chr not in data_dict:
-                        data_dict[chr] = {}
-                    data_dict[chr][filename] = {}
-                    data_dict[chr][filename]['f'] =[pos]
-                    data_dict[chr][filename]['r'] =[]
-            elif strand == '-':
-                try: data_dict[chr][filename]['r'].append(pos + length)
-                except KeyError:
-                    if chr not in data_dict:
-                        data_dict[chr] = {}
-                    data_dict[chr][filename] = {}
-                    data_dict[chr][filename]['f'] =[]
-                    data_dict[chr][filename]['r'] =[pos + length + 1]
-            else:
-                print("strand error")
-        infile.close()
-    return data_dict, length
-
+    
 def bed_parse(filename_list):
     '''Parsing BED format files'''
     data_dict={} 
@@ -173,92 +133,6 @@ def bed_parse(filename_list):
         infile.close()
     return data_dict, int(end)-int(start)  # read_length
 
-def process_illumina_match(align, mismatch, length, format):
-    words = align.split(',')
-    if format == "multi":
-        for match in words:
-            if match.startswith('c'):
-                str, match =match.split(':')
-                chr = re.match(r'(chr(\d\d?|\w))', str)
-                chr = chr.group(0)
-            if match.endswith(mismatch):
-                strand = match[-2]
-                pos = int(match[0:-2])
-                if strand =='R':
-                    pos = pos+length
-                return chr, strand, pos
-    elif format == "extended":
-        for match in words:
-            if match.startswith('c'):
-                chr_part, match = match.split(':')
-                chr = re.match(r'(chr(\d\d?|\w))', chr_part)
-                chr = chr.group(0)
-                m1 = re.search(r'([F|R])', match)
-                strand = m1.group(1)
-                pos = int(re.sub(r'[F|R].*', '', match))
-
-                if strand == 'R':
-                    pos = pos + length
-
-                match = re.sub(r'(\^\w+\$)', '', match)
-                m2 = re.findall(r'[A-Z]', match)
-
-                if len(m2) - 1 == int(mismatch):
-                    return chr, strand, pos
-
-
-# Parsing eland format files
-def eland_parse(filename_list, chr_list, format="default"):
-    #store the position and strand data for each file, seperated by chromosomes.
-    data_dict={}
-    infile = open(filename_list[0], 'r')
-    line = infile.readline()
-    words=line.split()
-    length=len(words[1])
-    info ("the length of the reads is %s", length)
-    infile.close()
-
-    for filename in filename_list:
-        infile = open(filename, 'r')
-        info("retrieving reads from file:%s", filename)
-        for line in infile:
-            words = line.strip().split()
-            mismatch = -1
-            
-            if len(words) == 4 and ':' in words[2]:
-                num_mismatch = words[2].split(':')
-                
-                if num_mismatch[0]== '1':
-                    mismatch = '0'
-                elif (num_mismatch[0]=='0') and (num_mismatch[1] == '1'):
-                    mismatch = '1'
-                elif (num_mismatch[0]=='0' and num_mismatch[1]=='0' and
-                        num_mismatch[2] == '1'):
-                    mismatch = '2'
-                if mismatch !=-1:
-                    try:
-                        chr, strand, pos = process_illumina_match(
-                                words[3], mismatch, length, format)
-                        if strand == 'F':
-                            try: data_dict[chr][filename]['f'].append(pos)
-                            except KeyError:
-                                if chr not in data_dict:
-                                    data_dict[chr] = {}
-                                data_dict[chr][filename] = {}
-                                data_dict[chr][filename]['f'] =[pos]
-                                data_dict[chr][filename]['r'] =[]
-                        elif strand == 'R':
-                            try: data_dict[chr][filename]['r'].append(pos)
-                            except KeyError:
-                                if chr not in data_dict:
-                                    data_dict[chr] = {}
-                                data_dict[chr][filename] = {}
-                                data_dict[chr][filename]['f'] =[]
-                                data_dict[chr][filename]['r'] =[pos + length + 1]
-                    except TypeError:
-                        pass
-        infile.close()
-    return data_dict, length
 
 
 def parse(readData, file_format):
@@ -268,15 +142,6 @@ def parse(readData, file_format):
     data_dict = {}
     if file_format == "bed":
         data_dict, read_length = bed_parse(readData.filename_list)
-    elif file_format == "eland_multi":
-        data_dict, read_length = eland_parse(
-                readData.filename_list, readData.chr_list, format="multi")
-    elif file_format == "eland_extended":
-        data_dict, read_length = eland_parse(
-                readData.filename_list, readData.chr_list, format="extended")
-    elif file_format == "bowtie":
-        data_dict, read_length = bowtie_parse(
-                readData.filename_list, readData.chr_list)
     elif file_format == "sam":
         data_dict, read_length = sam_parse(readData.filename_list)
     elif file_format == "bam":

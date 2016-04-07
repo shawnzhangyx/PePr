@@ -10,8 +10,8 @@ import time
 #import logConfig
 import optParser
 import fileParser
-import shiftSize
-import windowSize
+from pre_processing import shiftSize
+from pre_processing import windowSize
 import sigTests
 import misc
 from classDef import Parameters

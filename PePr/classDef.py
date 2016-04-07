@@ -27,7 +27,8 @@ class ReadData:
             self.chip_filename_list += chip2
             self.input_filename_list += input2
         self.filename_list = self.chip_filename_list + self.input_filename_list
-        print(self.filename_list)
+        #print(self.filename_list)
+        
         # remove duplicated file names. 
         self.filename_list = list(set(self.filename_list))
         self.chr_list = []
@@ -126,24 +127,79 @@ class Parameters:
     # ---- function specific parameters ---- #
 
     def __init__(self, opt):
+        self.chip1 = None
+        self.chip2 = None
+        self.input1 = None
+        self.input2 = None
+        self.file_format = None
+        self.shift_size = -1
+        self.window_size = -1
+        self.difftest = None
+        self.name = None
+        self.remove_redundant = None
+        self.threshold = None
+        self.peaktype = None
+        self.normalization = None
+        
         if opt.parameter is not "":
             self.process_parameter_file(opt.parameter)
         else:
             self.process_command_line_option(opt)
         self.validate_parameters()
-        # --- initialize logging --- #
         logConfig.startLog(opt.name)
+        self.print_parameters()
+        # --- initialize logging --- #
 
     def process_parameter_file(self, parameter_file):
         # using a case/switch commands
         file = open(parameter_file, 'r')
         for line in file:
-            items = line.split("=")
+            if line.startswith('#'):
+                continue 
+            items = line.split()
+            if len(items) == 0:
+                continue
             key = items[0].strip().lower()
-            value = items[1].strip()
-        pass
-        # ---- will implement this at a later time. 1/26/2015 ---- #
-
+            value = items[1:]
+            if key == "chip1":
+                try:
+                    self.chip1.append(value)
+                except AttributeError: 
+                    self.chip1 = [value]
+            if key == "chip2":
+                try:
+                    self.chip2.append(value)
+                except AttributeError: 
+                    self.chip2 = [value]
+            if key == "input1":
+                try:
+                    self.input1.append(value)
+                except AttributeError: 
+                    self.input1 = [value]
+            if key == "input2":
+                try:
+                    self.input2.append(value)
+                except AttributeError: 
+                    self.input2 = [value]
+            if key == "file_format":
+                self.file_format = value[0].lower()
+            if key == "shiftsize":
+                self.shift_size = value[0]
+            if key == "windowsize":
+                self.window_size = value[0]
+            if key == "peaktype":
+                self.peaktype = value[0].lower()
+            if key == "difftest":
+                self.difftest = value[0]
+            if key == "name":
+                self.name = value[0]
+            if key == "remove_redup":
+                self.redundant = value[0]
+            if key == "threshold":
+                self.threshold = float(value[0])
+            if key == "normalization":
+                self.normalization = value[0]
+                
     def process_command_line_option(self, opt):
         self.chip1 = opt.chip1
         self.input1 = opt.input1
@@ -157,12 +213,11 @@ class Parameters:
         self.remove_redundant = opt.remove_redundant
         self.threshold = opt.threshold
         self.peaktype = opt.peaktype.lower()
-        self.remove_artefacts = opt.remove_artefacts
-        self.narrow_peak_width = opt.narrow_peak_width
         self.normalization = opt.normalization
-        self.unsave_log = opt.unsave_log
 
     def validate_parameters(self):
+        # if there are files with the same name, raise an exception. 
+        
         # if any of the required files are missing, raise an exception.
         if self.chip1 == ['']:
             raise Exception("Please specify ChIP-1 sample names")
@@ -205,9 +260,6 @@ class Parameters:
             if len(shift_list) != chip_file_num:
                 raise Exception('''Number of shift sizes are not equal
                                     to the ChIP files.''')
-        if self.narrow_peak_width is True and self.peaktype == "broad":
-            raise Exception('''Cannot refine peak width for broad peaks.
-                               Please set peaktype to sharp.''')
 
         if self.difftest is True:
             if len(self.chip1) == \
@@ -221,6 +273,11 @@ class Parameters:
             else:
                 self.chip2_matched_input = False
 
+    def print_parameters(self):
+        info('printing parameters')
+        info('the chip1 files are...')
+        print self.chip1
+        
     def write_parameter_to_file(self):
         fileout = open(self.name+"__PePr_parameters.txt", 'w')
         attributes = vars(self)
