@@ -24,10 +24,11 @@ def main(argv):
 
     opt = optParser.opt_parser(argv)
     parameter, readData = optParser.process_opt(opt)
-    preprocess(parameter)
     # read data and estimate the shiftsize, normalization constant
+    preprocess(parameter)
+    # read data again, begin to process. 
+    prepare_data(readData, parameter)
     
-
 if __name__ == "__main__":
     try:
         main(sys.argv)

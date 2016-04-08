@@ -32,3 +32,9 @@ def parse(parameter, filename):
     
     info ("finished reading %s", filename)
     return data
+    
+def reads_to_bin(data):
+    counter = Counter()
+    for key in data:
+        counter[key] = len(data[key])
+    return counter

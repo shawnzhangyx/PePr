@@ -198,7 +198,7 @@ class Parameters:
             if key == "threshold":
                 self.threshold = float(value[0])
             if key == "normalization":
-                self.normalization = value[0]
+                self.normalization = value[0].lower()
                 
     def process_command_line_option(self, opt):
         self.chip1 = opt.chip1
