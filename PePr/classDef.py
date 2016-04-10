@@ -113,7 +113,7 @@ class ReadData:
                 max_read_f = max(self.data_dict_by_strands[chr][file]['f']+[0])
                 max_read_r = max(self.data_dict_by_strands[chr][file]['r']+[0])
                 temp_max_chr = max(temp_max_chr, max_read_f, max_read_r)
-            if all_file_has_this_chr is True:
+            if all_file_has_this_chr is True: 
                 chr_list.append(chr)
                 chr_length_dict[chr] = temp_max_chr
         chr_list.sort()
@@ -127,10 +127,10 @@ class Parameters:
     # ---- function specific parameters ---- #
 
     def __init__(self, opt):
-        self.chip1 = None
-        self.chip2 = None
-        self.input1 = None
-        self.input2 = None
+        self.chip1 = []
+        self.chip2 = []
+        self.input1 = []
+        self.input2 = []
         self.file_format = None
         self.shift_size = -1
         self.window_size = -1
@@ -140,13 +140,18 @@ class Parameters:
         self.threshold = None
         self.peaktype = None
         self.normalization = None
+        self.shift_dict = {}
+        self.normalization_dict = {}
+        # deprecated parameters. 
+        self.remove_artefacts = False
+        self.narrow_peak_width = False 
         
         if opt.parameter is not "":
             self.process_parameter_file(opt.parameter)
         else:
             self.process_command_line_option(opt)
         self.validate_parameters()
-        logConfig.startLog(opt.name)
+        logConfig.startLog(self.name)
         self.print_parameters()
         # --- initialize logging --- #
 
@@ -154,43 +159,39 @@ class Parameters:
         # using a case/switch commands
         file = open(parameter_file, 'r')
         for line in file:
-            if line.startswith('#'):
-                continue 
-            items = line.split()
+            items = line.split('#')[0].split()
+            # skip empty lines and lines starting with #
             if len(items) == 0:
                 continue
+            if len(items) > 4:
+                raise Exception("There are more than 4 columns in your parameter file.")
             key = items[0].strip().lower()
             value = items[1:]
             if key == "chip1":
-                try:
-                    self.chip1.append(value)
-                except AttributeError: 
-                    self.chip1 = [value]
+                self.chip1.append(value[0])
             if key == "chip2":
-                try:
-                    self.chip2.append(value)
-                except AttributeError: 
-                    self.chip2 = [value]
+                self.chip2.append(value[0])
             if key == "input1":
-                try:
-                    self.input1.append(value)
-                except AttributeError: 
-                    self.input1 = [value]
+                self.input1.append(value[0])
             if key == "input2":
-                try:
-                    self.input2.append(value)
-                except AttributeError: 
-                    self.input2 = [value]
+                self.input2.append(value[0])
+            # read the shift size and normalization constants. 
+            if key in ['chip1','chip2','input1','input2']:
+                if len(value) > 1: 
+                    self.shift_dict[value[0]] = int(value[1])
+                if len(value) > 2:
+                    self.normalization_dict[value[0]] = int(value[2])
+                    
             if key == "file_format":
                 self.file_format = value[0].lower()
             if key == "shiftsize":
-                self.shift_size = value[0]
+                self.shift_size = int(value[0])
             if key == "windowsize":
-                self.window_size = value[0]
+                self.window_size = int(value[0])
             if key == "peaktype":
                 self.peaktype = value[0].lower()
             if key == "difftest":
-                self.difftest = value[0]
+                self.difftest = value[0].lower()
             if key == "name":
                 self.name = value[0]
             if key == "remove_redup":
@@ -249,18 +250,7 @@ class Parameters:
             raise Exception('''please specify a peak type: sharp or broad.
             Typically, sharp works for TF better and broad
             for histone modifications.''')
-        shift_list = self.shift_size.split(',')
-        if len(shift_list) != 1:
-            if self.difftest is True:
-                chip_file_num = len(self.chip1) + \
-                    len(self.chip2)
-            else:
-                chip_file_num = len(self.chip1)
-
-            if len(shift_list) != chip_file_num:
-                raise Exception('''Number of shift sizes are not equal
-                                    to the ChIP files.''')
-
+        
         if self.difftest is True:
             if len(self.chip1) == \
                     len(self.input1):

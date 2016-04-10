@@ -98,8 +98,8 @@ def process_opt(opt):
 
     ## initialize the data structure
     read_data = ReadData(
-        opt.chip1, opt.input1,
-        opt.chip2, opt.input2,
+        parameter.chip1, parameter.input1,
+        parameter.chip2, parameter.input2,
         parameter.difftest
         )
     #add shift size validations

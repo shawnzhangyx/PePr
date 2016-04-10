@@ -1,0 +1,17 @@
+#filetype       filename        shiftsize       scale.factor
+chip1   chip_rep1.bed
+chip1   chip_rep2.bed
+input1  input_rep1.bed
+input1  input_rep2.bed
+file_format     bed
+shiftsize     90
+peaktype     BROAD
+windowsize     200
+difftest     FALSE
+remove_dup     FALSE  ## can use external software
+threshold     1e-5
+normalization     SCALE
+input directory     ./
+output directory     ./
+name    test
+

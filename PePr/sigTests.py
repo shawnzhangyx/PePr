@@ -136,6 +136,8 @@ def negative_binomial(readData, peakfilename, swap, parameter):
         read_array[numpy.where(read_array ==0)] = 1 
         y_bar_array = numpy.mean(read_array[:, start1:end1], 1)
         x_bar_array = numpy.mean(read_array[:, start2:end2], 1)
+
+        
         if swap: #swap the chip and control reads. 
             x_bar_array, y_bar_array = y_bar_array, x_bar_array
         # setting the minimum # of reads in each window to 1 
