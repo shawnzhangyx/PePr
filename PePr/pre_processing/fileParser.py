@@ -1,10 +1,11 @@
 from collections import Counter
 import logging
-
+#from memory_profiler import profile
 
 info = logging.info
-bin = 1000
+BIN = 1000
 
+#@profile
 def bed_parse(filename):
     
     output = {}
@@ -15,14 +16,30 @@ def bed_parse(filename):
         chr,start,end,col3,col4,strand = line.strip().split()
         pos = int(start)+int(end)/2
         try: 
-            output[(chr, pos/bin)].append((pos%bin,strand))
+            output[(chr, pos/BIN)].append((pos%BIN,strand))
         except KeyError:
-            output[(chr,pos/bin)] = [(pos%bin,strand)]
+            output[(chr,pos/BIN)] = [(pos%BIN,strand)]
         
         
     return output
     
+def bed_parse_to_bin(filename):
+    output = {}
+    infile = open(filename, 'r')
+    ##info ("reading sequences from file: %s", filename)
+    #count = 1000000 will not report lines. 
+    for line in infile: 
+        chr,start,end,col3,col4,strand = line.strip().split()
+        pos = int(start)+int(end)/2
+        try: 
+            output[(chr, pos/BIN)] += 1
+        except KeyError:
+            output[(chr,pos/BIN)] = 1
+        
+        
+    return output
 
+    
 
 def parse(parameter, filename):
     info ("start reading %s", filename)

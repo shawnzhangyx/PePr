@@ -7,6 +7,7 @@ from classDef import Peak
 from scipy.special import psi
 from scipy.stats.distributions import norm
 from operator import attrgetter
+import multiprocessing
 
 debug = logging.debug
 info = logging.info
@@ -54,7 +55,7 @@ def estimate_area_dispersion_factor(read, m, n, idx, peaktype, diff_test):
     if peaktype == "sharp":
         N_WINDOWS = 1 
     elif peaktype  == "broad":
-        N_WINDOWS = 10
+        N_WINDOWS = 5
     left = -1.0
     right = 6.0
     if weighted_log_likelihood(BASE**right, m, n, 
@@ -81,7 +82,7 @@ def cal_FDR(peak_list, num_tests):
     #calculate BH q-values
     q_list = [item.pvalue*num_tests/(idx+1) 
             for idx, item in enumerate(peak_list)]
-    q_min = q_list[-1]
+    q_min = min(q_list[-1],1) # q-value should be less than 1. 
     for i in range(len(q_list)-1, -1, -1):
         if q_list[i] >= q_min:
             q_list[i] = q_min
@@ -94,12 +95,65 @@ def cal_FDR(peak_list, num_tests):
     return peak_list
 
 
+    
+def worker(read_array, chr, swap,threshold, peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep):
+    sig_peaks_list = []
+    read_array[numpy.where(read_array ==0)] = 1
+    y_bar_array = numpy.mean(read_array[:, start1:end1], 1)
+    x_bar_array = numpy.mean(read_array[:, start2:end2], 1)
+    if swap: #swap the chip and control reads.
+        x_bar_array, y_bar_array = y_bar_array, x_bar_array
+    cand_index = get_candidate_window2(read_array, x_bar_array,
+                    y_bar_array, control_rep, test_rep, threshold)
+    debug("there are %d candidate windows for %s", len(cand_index), chr)
+    if not swap:
+        disp_list = numpy.array([estimate_area_dispersion_factor(read_array,
+                test_rep, control_rep, idx, peaktype, parameter.difftest)
+                for idx in cand_index])
+    else:
+        disp_list = numpy.array([estimate_area_dispersion_factor(read_array,
+                control_rep, test_rep, idx, peaktype, parameter.difftest)
+                for idx in cand_index])
+    debug("finished estimating dispersion for %s", chr)
+    cand_x_bar_array = x_bar_array[cand_index]
+    cand_y_bar_array = y_bar_array[cand_index]
+    gamma_array = cand_y_bar_array / cand_x_bar_array
+    tau_hat_array = numpy.sqrt(cand_y_bar_array*
+            ((control_rep*cand_x_bar_array*(disp_list+cand_y_bar_array)) +
+            (test_rep*cand_y_bar_array*(disp_list+cand_x_bar_array)))/
+            (test_rep*control_rep*disp_list*(cand_x_bar_array**3)))
+
+    gamma_hat = 1.0 #Null hypothesis
+    z_score_array = ((numpy.log(gamma_array)-numpy.log(gamma_hat))*
+            gamma_array/tau_hat_array)
+    pval_array = norm.cdf(-z_score_array)
+    test_index = numpy.where(pval_array<threshold)
+    test_index = test_index[0]
+    sig_index = cand_index[test_index]
+    sig_pval = pval_array[test_index]
+    sig_disp = disp_list[test_index]
+    for i, a in enumerate(test_index):
+        sig_peaks_list.append(Peak(chr, sig_index[i], sig_pval[i], 0))
+                
+    return sig_peaks_list
+def worker_helper(args):
+	return worker(*args)
+    
+def run_multicore_anlaysis(read_dict,swap, threshold,peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep):
+    numthreads = 4
+    pool = multiprocessing.Pool(processes=numthreads)
+     
+    result_list = pool.map(worker_helper, [(read_dict[chr],chr, swap,threshold, peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep) for chr in read_dict] )
+    
+    result = []
+    map(result.extend, result_list)
+    #print result[0]
+    return result
+    
 def negative_binomial(readData, peakfilename, swap, parameter):
     '''the main function that test for significant windows.'''
     # Initialize the parameters
     peaktype = parameter.peaktype
-    remove_artefacts = parameter.remove_artefacts
-    narrow_peak = parameter.narrow_peak_width
     threshold = parameter.threshold
     windowsize = parameter.window_size
     # Indicate the data 
@@ -130,58 +184,61 @@ def negative_binomial(readData, peakfilename, swap, parameter):
     #sig_index_dict = {}
     sig_peaks_list = []    
 
-    for chr in read_dict:
+    # single-core version. 
+    if True:
+        for chr in read_dict:
+            read_array = read_dict[chr]
+            read_array[numpy.where(read_array ==0)] = 1 
+            y_bar_array = numpy.mean(read_array[:, start1:end1], 1)
+            x_bar_array = numpy.mean(read_array[:, start2:end2], 1)
 
-        read_array = read_dict[chr]
-        read_array[numpy.where(read_array ==0)] = 1 
-        y_bar_array = numpy.mean(read_array[:, start1:end1], 1)
-        x_bar_array = numpy.mean(read_array[:, start2:end2], 1)
+            
+            if swap: #swap the chip and control reads. 
+                x_bar_array, y_bar_array = y_bar_array, x_bar_array
+            # setting the minimum # of reads in each window to 1 
+            # so that they won't have arithmetic errors. 
 
-        
-        if swap: #swap the chip and control reads. 
-            x_bar_array, y_bar_array = y_bar_array, x_bar_array
-        # setting the minimum # of reads in each window to 1 
-        # so that they won't have arithmetic errors. 
-    
-        cand_index = get_candidate_window2(read_array, x_bar_array,
-                y_bar_array, control_rep, test_rep, threshold)
-        debug("there are %d candidate windows for %s", len(cand_index), chr)
-        if not swap: 
-            disp_list = numpy.array([estimate_area_dispersion_factor(read_array, 
-                    test_rep, control_rep, idx, peaktype, parameter.difftest)
-                    for idx in cand_index])
-        else: 
-            disp_list = numpy.array([estimate_area_dispersion_factor(read_array,
-                    control_rep, test_rep, idx, peaktype, parameter.difftest)
-                    for idx in cand_index])
-        debug("finished estimating dispersion for %s", chr)
-        cand_x_bar_array = x_bar_array[cand_index]
-        cand_y_bar_array = y_bar_array[cand_index]
-        gamma_array = cand_y_bar_array / cand_x_bar_array
-        tau_hat_array = numpy.sqrt(cand_y_bar_array* 
-                ((control_rep*cand_x_bar_array*(disp_list+cand_y_bar_array)) + 
-                (test_rep*cand_y_bar_array*(disp_list+cand_x_bar_array)))/
-                (test_rep*control_rep*disp_list*(cand_x_bar_array**3)))
+            cand_index = get_candidate_window2(read_array, x_bar_array,
+                    y_bar_array, control_rep, test_rep, threshold)
+            debug("there are %d candidate windows for %s", len(cand_index), chr)
+            if not swap: 
+                disp_list = numpy.array([estimate_area_dispersion_factor(read_array, 
+                        test_rep, control_rep, idx, peaktype, parameter.difftest)
+                        for idx in cand_index])
+            else: 
+                disp_list = numpy.array([estimate_area_dispersion_factor(read_array,
+                        control_rep, test_rep, idx, peaktype, parameter.difftest)
+                        for idx in cand_index])
+            debug("finished estimating dispersion for %s", chr)
+            cand_x_bar_array = x_bar_array[cand_index]
+            cand_y_bar_array = y_bar_array[cand_index]
+            gamma_array = cand_y_bar_array / cand_x_bar_array
+            tau_hat_array = numpy.sqrt(cand_y_bar_array* 
+                    ((control_rep*cand_x_bar_array*(disp_list+cand_y_bar_array)) + 
+                    (test_rep*cand_y_bar_array*(disp_list+cand_x_bar_array)))/
+                    (test_rep*control_rep*disp_list*(cand_x_bar_array**3)))
 
-        gamma_hat = 1.0 #Null hypothesis
-        z_score_array = ((numpy.log(gamma_array)-numpy.log(gamma_hat))* 
-                gamma_array/tau_hat_array)
-        pval_array = norm.cdf(-z_score_array)
-        # record results for potential windows
-#        window_out = open(chr+"candidate.out",'w')
-#        for i in range(len(cand_index)):
-#            window_out.write(chr+'\t'+str(cand_index[i])+'\t'+str(disp_list[i])+'\t'+str(pval_array[i])+'\n')
-#        window_out.close()
-        # Record the indices of the windows that have p-value smaller
-        # than the threshold. 
-        test_index = numpy.where(pval_array<threshold)  
-        test_index = test_index[0]
-        sig_index = cand_index[test_index]
-        sig_pval = pval_array[test_index]
-        sig_disp = disp_list[test_index]
-        for i, a in enumerate(test_index):
-            sig_peaks_list.append(Peak(chr, sig_index[i], sig_pval[i], 0))
-
+            gamma_hat = 1.0 #Null hypothesis
+            z_score_array = ((numpy.log(gamma_array)-numpy.log(gamma_hat))* 
+                    gamma_array/tau_hat_array)
+            pval_array = norm.cdf(-z_score_array)
+            # record results for potential windows
+        #        window_out = open(chr+"candidate.out",'w')
+        #        for i in range(len(cand_index)):
+        #            window_out.write(chr+'\t'+str(cand_index[i])+'\t'+str(disp_list[i])+'\t'+str(pval_array[i])+'\n')
+        #        window_out.close()
+            # Record the indices of the windows that have p-value smaller
+            # than the threshold. 
+            test_index = numpy.where(pval_array<threshold)  
+            test_index = test_index[0]
+            sig_index = cand_index[test_index]
+            sig_pval = pval_array[test_index]
+            sig_disp = disp_list[test_index]
+            for i, a in enumerate(test_index):
+                sig_peaks_list.append(Peak(chr, sig_index[i], sig_pval[i], 0))
+    if False: 
+        sig_peaks_list = run_multicore_anlaysis(read_dict,swap, threshold,peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep)
+            
     #calculate the BH FDR. 
     debug("begin estimating fdr")
     sig_peaks_list = cal_FDR(sig_peaks_list, num_tests)
@@ -206,42 +263,12 @@ def negative_binomial(readData, peakfilename, swap, parameter):
                           sig_pval[idx], sig_qval[idx]]
             final_peak_list.append(final_peak) 
 
-    # post-processing 
-    if remove_artefacts is True: 
-         dump_file = open(peakfilename[:-10]+"_removed_peaks.txt","w")
-         dump_file.write("chr\tstart\tend\twidth\tp-value\tq-value\t")
-         dump_file.write("chip_input_ratio\ttag_monopoly\t")
-         dump_file.write("strand_overlap_original\tstrand_overlap_shifted\n")
-    info("begin post-processing...")
     for final_peak in final_peak_list: 
         chr = final_peak[0]
         start = final_peak[1]
         end = final_peak[2]
         pval = final_peak[3]
         qval = final_peak[4]
-
-        if swap is False: 
-            chip_list = readData.chip1_filename_list
-            input_list = readData.input1_filename_list
-        else: 
-            chip_list = readData.chip2_filename_list
-            input_list = readData.input2_filename_list
-        if narrow_peak or remove_artefacts: 
-            (start, end, chip_input_ratio, tag_monopoly, overlap_orig, 
-             overlap_roll) = post_processing_per_peak(
-                    strands_dict, chip_list, input_list, chr, start, end,
-                    readData.shift_size, readData.read_length,
-                    narrow_peak, remove_artefacts)
-            if remove_artefacts and (chip_input_ratio > 0.5 or 
-                    # tag_monopoly > 0.5 or  #will not remove tag monopoly cases. 
-                    (overlap_orig > 0.2 and
-                overlap_roll/overlap_orig < 0.5)):
-                dump_file.write(chr+"\t" + str(start) + '\t' + str(end) + '\t' +
-                        str(end-start) + '\t' + str(pval) + '\t' + str(qval) + 
-                        '\t' + str(chip_input_ratio) + '\t' + 
-                        str(tag_monopoly) + '\t' + str(overlap_orig) +
-                        '\t' + str(overlap_roll) + '\n')
-                continue
         peakfile.write(chr + "\t" + str(start) + '\t' + str(end) + '\t' + 
                 str(end-start) + '\t' + str(pval) + '\t' + str(qval) + '\n')
     return 
@@ -294,168 +321,3 @@ def merge_sig_window(index_list, pval_list, qval_list, peaktype):
 
     return sig_peak_start, sig_peak_end, sig_pval, sig_qval
 
-
-def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
-                             start, end, shiftSize, readLength, narrow_peak,
-                             remove_artefacts):
-    ''' Remove artefacts and refine peak width.'''
-    chip_forward = numpy.zeros(end-start)
-    chip_reverse = numpy.zeros(end-start)
-    input_forward = numpy.zeros(end-start)
-    input_reverse = numpy.zeros(end-start)
-
-    for chip in chip_list:
-        forward = strands_dict[chr][chip]['f']
-        reverse = strands_dict[chr][chip]['r']
-        forward_read = forward[numpy.where( (forward >= start) &
-                (forward < end) )]
-        reverse_read = reverse[numpy.where( (reverse >= start+readLength) &
-                (reverse < end+readLength) )]
-        for read in forward_read:
-            try: chip_forward[(read-start)] +=1
-            except IndexError:
-                debug("index error ignored. end-start: %d. read-start: %d.", end-start, read-start)
-        for read in reverse_read:
-            try: chip_reverse[(read-start-readLength)] +=1
-            except IndexError:
-                debug("index error ignored. end-start: %d. read-start-readLength: %d.", end-start, read-start-readLength)
-    # using input reads to remove artefacts
-    if remove_artefacts is True: 
-        for input in input_list:
-            forward = strands_dict[chr][input]['f']
-            reverse = strands_dict[chr][input]['r']
-            forward_read = forward[numpy.where( (forward >= 
-                    start) & (forward < end) )]
-            reverse_read = reverse[numpy.where( (reverse >=
-                    start+readLength) & (reverse < end+readLength) )]
-            for read in forward_read:
-                try: input_forward[(read-start)] +=1
-                except IndexError: 
-                    debug("index error ignored. end-start: %d. read-start: %d.", end-start, read-start)
-            for read in reverse_read:
-                try: input_reverse[(read-start-readLength)] +=1
-                except IndexError:
-                    debug("index error ignored. end-start: %d. read-start-readLength: %d.", end-start, read-start-readLength)
-
-        chip_both = chip_forward + chip_reverse
-        input_both = input_forward + input_reverse
-        if sum(chip_both) == 0:
-            pass
-        else:
-            chip_both = chip_both/sum(chip_both)
-        if sum(input_both) ==0:
-            pass
-        else:
-            input_both = input_both/sum(input_both)
-        overlap_chip_input = numpy.sum(numpy.minimum(chip_both, input_both))
-        chip_both.sort()
-        chip_3_maximum = numpy.sum(chip_both[-3:])
-        if sum(chip_reverse) != 0:
-            chip_reverse = chip_reverse/sum(chip_reverse) 
-        chip_forward_roll = numpy.roll(chip_forward,readLength)
-        if sum(chip_forward) != 0:
-            chip_forward = chip_forward/sum(chip_forward)
-            chip_forward_roll = chip_forward_roll/sum(chip_forward)
-        overlap_orig = numpy.sum(numpy.minimum(chip_forward, chip_reverse))
-        overlap_orig = numpy.max([overlap_orig, 1e-5])
-        overlap_roll = numpy.sum(numpy.minimum(chip_forward_roll, chip_reverse))
-    else: 
-        overlap_chip_input = 0
-        chip_3_maximum = 0 
-        overlap_orig = 1e-5
-        overlap_roll = 0
-
-    if narrow_peak is True:
-        sum_forward = 0
-        sum_reverse = 0
-        if sum(chip_forward) > 0: 
-            chip_forward = chip_forward/sum(chip_forward)
-            for i in range(end-start): 
-                sum_forward += chip_forward[i]
-                if sum_forward > 0.2: 
-                    new_start = start + i
-                    break
-        if sum(chip_reverse) > 0:
-            chip_reverse = chip_reverse/sum(chip_reverse)
-            for i in range(end-start-1, -1, -1):
-                sum_reverse += chip_reverse[i]
-                if sum_reverse > 0.2:
-                    new_end = start + i
-                    break
-        # there is no reads in the peak. 
-        if sum(chip_forward)+sum(chip_reverse) == 0: 
-            new_start = new_end = (start+end)/2
-
-        if sum(chip_forward) == 0:
-            new_start = new_end - misc.median(2*shiftSize.values())
-        if sum(chip_reverse) == 0:
-            new_end = new_start + misc.median(2*shiftSize.values())
-        start = new_start
-        end = new_end
-
-    return (start, end, overlap_chip_input, chip_3_maximum, 
-            overlap_orig, overlap_roll)
-
-
-def shift_size_per_peak(strands_dict, chip_list, chr, start, end,
-                        shiftSize, readLength, narrow_peak):
-    '''Deprecated function. Used to estimate the shift size of 
-       peak'''
-    shift_list = []
-    start_list = []
-    end_list = []
-
-    for chip in chip_list:
-        forward = strands_dict[chr][chip]['f']
-        reverse = strands_dict[chr][chip]['r']
-
-        forward_read = forward[numpy.where( (forward > start-shiftSize[chip]) &
-                (forward < end-shiftSize[chip]) )]
-        reverse_read = reverse[numpy.where( (reverse > start+shiftSize[chip]) &
-                (reverse < end+shiftSize[chip]) )]
-        if len(reverse_read) ==0: 
-            fold = 100  
-        # If there is no reads in the reverse strand, define 
-        # the fold (forward over reverse) to be 100 to avoid 
-        # arithmetic errors.
-        else:
-            fold = float(len(forward_read))/len(reverse_read)
-        # estimate the shift size
-        forward = numpy.zeros(end-start)
-        reverse = numpy.zeros(end-start)
-        for read in forward_read:
-            try: forward[(read-start):(read-start+readLength)] +=1
-            except IndexError:
-                debug("index error ignored. end-start: %d. read-start+readLength: %d.", end-start, read-start+readLength)
-        for read in reverse_read:
-            try: reverse[(read-start-readLength):(read-start)] +=1
-            except IndexError: 
-                debug("index error ignored. end-start: %d. read-start: %d.", end-start, read-start)
-        shade_max = 0
-        shift_max = 0
-        # Iterate from 0 to 250 bp, find the optimum shift that produce 
-        # the most overlap between the two strands. 
-        for shift in range(-readLength, 250-readLength): 
-            forward_temp = numpy.roll(forward, shift)
-            shade = numpy.sum(numpy.min(numpy.vstack(
-                    [forward_temp, reverse]), 0))
-            if shade > shade_max:
-                shift_max = shift
-                shade_max = shade
-        shift_list.append(shift_max+readLength)
-        if narrow_peak:
-            forward_read.sort()
-            reverse_read.sort()
-            forward_len = len(forward_read)
-            reverse_len = len(reverse_read)
-            if forward_len>0:
-                start_list.append(forward_read[numpy.floor(forward_len*0.2)])
-            if reverse_len>0: 
-                end_list.append(reverse_read[-numpy.floor(reverse_len*0.2)])
-    if narrow_peak:
-        if (len(start_list) ==0) | (len(end_list)==0):
-            return -1
-        else:
-            return min(start_list), max(end_list), shift_list, fold
-    else:
-        return start, end, shift_list, fold
