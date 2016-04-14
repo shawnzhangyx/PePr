@@ -136,18 +136,20 @@ def worker(read_array, chr, swap,threshold, peaktype,parameter, start1,end1,star
         sig_peaks_list.append(Peak(chr, sig_index[i], sig_pval[i], 0))
                 
     return sig_peaks_list
+	
 def worker_helper(args):
+	### help the workers to take multiple arguments 
 	return worker(*args)
     
 def run_multicore_anlaysis(read_dict,swap, threshold,peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep):
-    numthreads = 4
-    pool = multiprocessing.Pool(processes=numthreads)
+
+    pool = multiprocessing.Pool(processes=parameter.num_procs)
      
-    result_list = pool.map(worker_helper, [(read_dict[chr],chr, swap,threshold, peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep) for chr in read_dict] )
+    result_list = pool.map(worker_helper, [(read_dict[chr],chr, swap,threshold, peaktype,parameter, 
+					start1,end1,start2,end2,test_rep,control_rep) for chr in read_dict] )
     
     result = []
     map(result.extend, result_list)
-    #print result[0]
     return result
     
 def negative_binomial(readData, peakfilename, swap, parameter):
@@ -185,7 +187,7 @@ def negative_binomial(readData, peakfilename, swap, parameter):
     sig_peaks_list = []    
 
     # single-core version. 
-    if True:
+    if parameter.num_procs <2:
         for chr in read_dict:
             read_array = read_dict[chr]
             read_array[numpy.where(read_array ==0)] = 1 
@@ -236,13 +238,13 @@ def negative_binomial(readData, peakfilename, swap, parameter):
             sig_disp = disp_list[test_index]
             for i, a in enumerate(test_index):
                 sig_peaks_list.append(Peak(chr, sig_index[i], sig_pval[i], 0))
-    if False: 
+    else: 
         sig_peaks_list = run_multicore_anlaysis(read_dict,swap, threshold,peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep)
             
     #calculate the BH FDR. 
-    debug("begin estimating fdr")
+    debug("begin estimating FDR")
     sig_peaks_list = cal_FDR(sig_peaks_list, num_tests)
-    debug("finished estimating fdr")
+    debug("finished estimating FDR")
 
     # merge adjacent significant peaks. 
     info ("Merging adjacent significant windows...")
@@ -281,7 +283,7 @@ def merge_sig_window(index_list, pval_list, qval_list, peaktype):
         # The maximal gap (max-1) of significant windows allowed to merge.
         MAX_WINDOW = 2 
     elif peaktype =="broad":
-        MIN_WINDOW = 2 
+        MIN_WINDOW = 1 
         MAX_WINDOW = 5
     sig_peak_start = []
     sig_peak_end = []

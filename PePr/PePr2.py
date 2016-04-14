@@ -27,14 +27,26 @@ def main(argv):
     # read data and estimate the shiftsize, normalization constant
     preprocess(parameter)
     # read data again, begin to process. 
-    prepareData.prepare_data(readData, parameter)
     
-    if parameter.difftest == "false": 
+    prepareData.read_files_to_arrays(parameter)
+    '''
+    if parameter.difftest is False: 
         info ("peak-calling")
         swap = False
         peakfilename = parameter.name +"__PePr_peaks.bed"
         sigTests.negative_binomial(readData, peakfilename, swap, parameter)
-        
+    else: 
+        up_peakfilename = parameter.name+"__PePr_chip1_peaks.bed"
+        swap = False
+        sigTests.negative_binomial(readData, up_peakfilename, swap, parameter)
+        down_peakfilename = parameter.name+"__PePr_chip2_peaks.bed"
+        swap = True
+        sigTests.negative_binomial(readData, down_peakfilename,
+                                   swap, parameter)
+	parameter.write_parameter_to_file()
+    '''
+    info("PePr finished running, thanks for all the wait!")		
+	
 if __name__ == "__main__":
     try:
         main(sys.argv)

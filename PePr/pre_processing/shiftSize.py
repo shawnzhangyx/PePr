@@ -1,12 +1,7 @@
-import sys
-import misc
-import logging
-import logConfig
-import numpy
+#from logging import info
 from collections import Counter
 
-info = logging.info
-debug = logging.debug
+
 
 
 def estimate_shiftsize(data):
