@@ -71,10 +71,8 @@ def opt_parser(argv):
             help="where you want the output files to be")
     parser.add_option(
             "--custom_normalization", action="store",
-            type="string", dest="normalization", default="YES", 
-            help='''You can choose not to normalize the reads by 
-            specifying 'NO' or provide your own normalization 
-            constants separated by commas.''')
+            type="string", dest="normalization", default="scale", 
+            help='''Normalization method. scale or compound''')
     parser.add_option(
             "--no_log", action="store_true",
             dest = "unsave_log", default=False,
@@ -92,6 +90,7 @@ def process_opt(opt):
     opt.chip2 = opt.chip2.strip().split(',')
     opt.input1 = opt.input1.strip().split(',')
     opt.input2 = opt.input2.strip().split(',')
+    opt.normalization = opt.normalization.lower()
     parameter = Parameters(opt)
 
     #add shift size validations

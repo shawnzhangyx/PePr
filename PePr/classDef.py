@@ -107,9 +107,7 @@ class Parameters:
         self.chip2 = opt.chip2
         self.input2 = opt.input2
         self.file_format = opt.file_format.lower()
-        if self.shift_size is not -1:
-            for filename in self.get_filenames():
-                self.shift_dict[filename] = opt.shift_size 
+        self.shift_size = opt.shift_size
         self.window_size = opt.window_size
         self.difftest = opt.difftest
         self.name = opt.name

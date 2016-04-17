@@ -16,7 +16,10 @@ def preprocess(parameter):
     if parameter.window_size == -1:
         windowSize.estimate_window_size(chip_filename, parameter)
     # if shift size is not available, estimate the shift size for chip1 and input1
-    if len(parameter.shift_dict) is 0:
+    if parameter.shift_size != -1:
+        for filename in parameter.get_filenames():
+                parameter.shift_dict[filename] = parameter.shift_size 
+    elif len(parameter.shift_dict) is 0:
         shiftSize.estimate_shiftsizes(parameter)
     # if normalization constants are not available, estimate it.     
     if len(parameter.normalization_dict) is 0:
