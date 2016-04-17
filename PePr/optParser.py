@@ -50,10 +50,6 @@ def opt_parser(argv):
             help = "the experimental name. NA if none provided",
             metavar="NAME")
     parser.add_option(
-            "-r", "--remove_duplicate", action ="store_true",
-            dest = "remove_redundant", default=False,
-            help="Remove duplicated reads")
-    parser.add_option(
             "--threshold", action ="store",
             type='float', dest="threshold", default=1e-5,
             help="p-value threshold. Default 1e-5.")
@@ -62,14 +58,17 @@ def opt_parser(argv):
             type="string", dest="peaktype", default="broad",
             help="sharp or broad. Default broad.")
     parser.add_option(
-            "--remove_artefacts", action="store_true",
-            dest="remove_artefacts", default=False,
-            help = 'Remove PCR-duplication peaks in post-procesing')
+            "--num-processors", action="store",
+            type="int", dest="num_procs", default =1,
+            help="number of CPUs use on it.")
     parser.add_option(
-            "--narrow_peak_width", action="store_true",
-            dest ="narrow_peak_width", default=False,
-            help = '''Narrow peak width to contain the most
-            enriched regions. Only available for SHARP peak type''')
+            "--input-directory", action="store",
+            type="string", dest="input_directory", default='./',
+            help="where the data files are")
+    parser.add_option(
+            "--output-directory", action="store",
+            type="string", dest="output_directory", default='./',
+            help="where you want the output files to be")
     parser.add_option(
             "--custom_normalization", action="store",
             type="string", dest="normalization", default="YES", 

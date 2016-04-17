@@ -98,24 +98,29 @@ class Parameters:
             if key == "input_directory":
                 self.input_directory = value[0]
             if key == "output_directory":
-                self.output_directory = value[0]
-                
-                
+                self.output_directory = value[0]                
+        return 
+        
     def process_command_line_option(self, opt):
         self.chip1 = opt.chip1
         self.input1 = opt.input1
         self.chip2 = opt.chip2
         self.input2 = opt.input2
         self.file_format = opt.file_format.lower()
-        self.shift_size = opt.shift_size
+        if self.shift_size is not -1:
+            for filename in self.get_filenames():
+                self.shift_dict[filename] = opt.shift_size 
         self.window_size = opt.window_size
         self.difftest = opt.difftest
         self.name = opt.name
-        self.remove_redundant = opt.remove_redundant
         self.threshold = opt.threshold
         self.peaktype = opt.peaktype.lower()
         self.normalization = opt.normalization
-
+        self.input_directory = opt.input_directory
+        self.output_directory = opt.output_directory
+        self.num_procs = opt.num_procs
+        return 
+        
     def validate_parameters(self):
         # if there are files with the same name, raise an exception. 
         
@@ -135,7 +140,7 @@ class Parameters:
                 two replicates are required''')
         if self.chip2 != [] and self.input2 != [] and  self.difftest is False: 
             raise Exception('''chip2 and input2 detected, but --diff parameter
-                is missing. Please add --diff if you want to run differential
+                is missing. Please set difftest to True if you want to run differential
                 analysis''')
         if not self.file_format:
             raise Exception('''Please specify a file format:  bed,

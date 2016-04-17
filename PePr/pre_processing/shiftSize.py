@@ -6,7 +6,7 @@ import numpy
 import itertools 
 import pysam 
 
-BIN = 1000
+BIN = 10000
 
 def estimate_shiftsizes(parameter):
     ''' the root function for estimating the shiftsizes'''
@@ -73,6 +73,7 @@ def estimate_shiftsize(chip, parameter):
             info_array = info_dict[chr]
             bin_array = bin_dict[chr]
     
+    #print info_array[66090:66095], bin_array[66090:66095]
     rank = rankdata(-bin_array)
     order = numpy.argsort(rank)
     info_array_top = info_array[order][range(SIZE)]
@@ -80,6 +81,13 @@ def estimate_shiftsize(chip, parameter):
     info_array_top = info_array_top[numpy.where(info_array_top[:,1]>0)]
     info_array_top = info_array_top[numpy.where(info_array_top[:,3]>0)]
     shift_array = info_array_top[:,2]/info_array_top[:,3] - info_array_top[:,0]/info_array_top[:,1]
+    
+    ### output shift_size
+    with open(chip+'.shift.txt', 'w') as fileout:
+        for shift in shift_array:
+            fileout.write(str(shift)+'\n')
+           
+    
     shift_size = int(numpy.median(shift_array)/2)
     info("The shift size for %s is %d", chip, shift_size)
     return (shift_size, bin_array)

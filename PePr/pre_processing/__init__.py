@@ -5,7 +5,7 @@ import pysam
 
 import shiftSize
 import cal_normalization
-
+import windowSize
 
 def preprocess(parameter):
     ''' read file and estimate shift sizes and normazliation parameters. 
@@ -13,6 +13,8 @@ def preprocess(parameter):
     # use one chip sample estimate the chromosome size
     chip_filename = parameter.chip1[0]
     get_chromosome_info(parameter, chip_filename)
+    if parameter.window_size == -1:
+        windowSize.estimate_window_size(chip_filename, parameter)
     # if shift size is not available, estimate the shift size for chip1 and input1
     if len(parameter.shift_dict) is 0:
         shiftSize.estimate_shiftsizes(parameter)

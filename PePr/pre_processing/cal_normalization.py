@@ -7,7 +7,7 @@ import multiprocessing
 import itertools
 
 
-BIN = 1000 # bin size for normalization purposes. 
+BIN = 10000 # bin size for normalization purposes. 
 
 def cal_normalization_constant(parameter):
     info ("calculating normalization constants")
@@ -57,14 +57,15 @@ def compound(parameter):
     '''compound normalization '''
     # process the reads into bins. 
     bin_dict = parameter.bin_dict 
+    bin_size = BIN
     
     if parameter.num_procs < 2: 
         for filename in parameter.get_filenames_wo_bin_dict():
-            bin_dict[filename] = parse_to_bin(filename, parameter)
+            bin_dict[filename] = parse_to_bin(filename, bin_size, parameter)
     
     else: 
         pool = multiprocessing.Pool(parameter.num_procs)
-        p = pool.map_async(parse_to_bin_wrapper, itertools.izip(parameter.get_filenames_wo_bin_dict(), itertools.repeat(parameter)),1)
+        p = pool.map_async(parse_to_bin_wrapper, itertools.izip(parameter.get_filenames_wo_bin_dict(), itertools.repeat(bin_size), itertools.repeat(parameter)),1)
         try: results = p.get()
         except KeyboardInterrupt:
             exit(1)
@@ -187,18 +188,18 @@ def parse_to_bin_wrapper(args):
     except KeyboardInterrupt, e:
         pass 
         
-def parse_to_bin(filename, parameter):
+def parse_to_bin(filename, bin_size, parameter):
     bin_dict = {}
     for chr in parameter.chr_info:
-        row_num = int(parameter.chr_info[chr]/BIN) - 1
+        row_num = int(parameter.chr_info[chr]/bin_size) - 1
         bin_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
         
     if parameter.file_format == "bed":
-        bin_dict = parse_bed_to_bin(filename, bin_dict, parameter)
+        bin_dict = parse_bed_to_bin(filename, bin_size, bin_dict, parameter)
     elif parameter.file_format == "bam":
-        bin_dict = parse_bam_to_bin(filename, bin_dict, parameter)
+        bin_dict = parse_bam_to_bin(filename, bin_size, bin_dict, parameter)
     elif parameter.file_format == "sam":
-        bin_dict = parse_sam_to_bin(filename, bin_dict, parameter)    
+        bin_dict = parse_sam_to_bin(filename, bin_size, bin_dict, parameter)    
     
     for chr in parameter.chr_info:
         try: 
@@ -210,7 +211,7 @@ def parse_to_bin(filename, parameter):
     
     
     
-def parse_bed_to_bin(filename, bin_dict, parameter):
+def parse_bed_to_bin(filename, bin_size, bin_dict, parameter):
     ''' parse the bed files into bin '''
     infile = open(parameter.input_directory+filename, 'r')
     for line in infile: 
@@ -219,13 +220,13 @@ def parse_bed_to_bin(filename, bin_dict, parameter):
             pos = int(start)           
         else: 
             pos = int(end)
-        try: bin_dict[chr][int(pos/BIN)] += 1
+        try: bin_dict[chr][int(pos/bin_size)] += 1
         except IndexError: pass # index out of range at the end of chr
     
             
     return bin_dict
 
-def parse_bam_to_bin(filename, bin_dict, parameter):
+def parse_bam_to_bin(filename, bin_size, bin_dict, parameter):
 
     infile = pysam.Samfile(parameter.input_directory+filename, 'rb')
     for line in infile.fetch(until_eof=True):
@@ -236,7 +237,7 @@ def parse_bam_to_bin(filename, bin_dict, parameter):
             except IndexError: pass # index out of range at the end of chr. 
     return bin_dict           
     
-def parse_sam_to_bin(filename, bin_dict, parameter):
+def parse_sam_to_bin(filename,bin_size, bin_dict, parameter):
     infile = open(parameter.input_directory+filename, 'r')
     # skip the header of the SAM file. 
     for line in infile:
@@ -250,7 +251,7 @@ def parse_sam_to_bin(filename, bin_dict, parameter):
         if flag & 0x0004: #if not unmapped
             chr, pos =  words[2], int(words[3])-1
             try: 
-                bin_dict[chr][int(line.pos/BIN)] += 1
+                bin_dict[chr][int(line.pos/bin_size)] += 1
             except IndexError: pass # index out of range at end of chr.
                 
     return bin_dict 

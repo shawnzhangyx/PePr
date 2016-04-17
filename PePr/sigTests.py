@@ -186,7 +186,7 @@ def negative_binomial(read_dict, peakfilename, swap, parameter):
     if parameter.num_procs <2:
         for chr in read_dict:
             read_array = read_dict[chr]
-            sig_peak_list.extend(per_chr_nbtest(read_array, chr, swap,threshold, peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep))
+            sig_peaks_list.extend(per_chr_nbtest(read_array, chr, swap,threshold, peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep))
     # multi-core version
     else: 
         pool = multiprocessing.Pool(processes=parameter.num_procs)
@@ -224,7 +224,7 @@ def negative_binomial(read_dict, peakfilename, swap, parameter):
                           sig_pval[idx], sig_qval[idx]]
             final_peak_list.append(final_peak) 
     # sort the peak list
-    sorted(final_peak_list, key=itemgetter(4))
+    final_peak_list = sorted(final_peak_list, key=itemgetter(4))
     info("%d peaks called.", len(final_peak_list))
     #start output peaks. 
     all_fc = [peak[3] for peak in final_peak_list] 

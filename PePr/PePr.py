@@ -1,71 +1,57 @@
 #!/usr/bin/env python
 ''' The main .py file for the PePr pipeline '''
 
+# basic modules
 import re
 import os
 import sys
-import logging
 import time
+from logging import info
 
-#import logConfig
+# local modules
 import optParser
-import fileParser
-from pre_processing import shiftSize
-from pre_processing import windowSize
+from pre_processing import preprocess
+import prepareData
 import sigTests
-import misc
 from classDef import Parameters
+
 
 
 def argless_main():
     '''setuptools entry_points take no arguments, wrap main instead'''
     main(sys.argv)
 
-
-
 def main(argv):
 
-
-    # initialize the logger
-    debug = logging.debug
-    info = logging.info
-
-    # performing the option parser
     opt = optParser.opt_parser(argv)
-    parameter, readData = optParser.process_opt(opt)
-    # 1. read and parse the data
-    fileParser.parse(readData, parameter.file_format)
-    # 2. remove the redundant reads
-    if (parameter.remove_redundant):
-        readData.remove_redundant_reads()
-    # 3. shiftSize estimation and shifting reads
-    shiftSize.estimate_shift_size(readData, parameter)
-    shiftSize.shift_reads(readData)
-    # 4. calculating the normalization constant
-    windowSize.estimate_normalization_constant(readData, parameter)
-    # 5. windowSize estimation and split reads into windows
-    windowSize.estimate_window_size(readData, parameter)
-    info(" The windowSize is %s", parameter.window_size)
-    windowSize.separate_exact_by_window(readData, parameter)
-    # 6. calling peaks
-    if parameter.difftest is False:
-        swap = False
-        peakfilename = parameter.name+"__PePr_peaks.bed"
-        sigTests.negative_binomial(readData, peakfilename, swap, parameter)
-    else:
-        up_peakfilename = parameter.name+"__PePr_up_peaks.bed"
-        swap = False
-        sigTests.negative_binomial(readData, up_peakfilename, swap, parameter)
-        down_peakfilename = parameter.name+"__PePr_down_peaks.bed"
-        swap = True
-        sigTests.negative_binomial(readData, down_peakfilename,
-                                   swap, parameter)
-    # 7. Write to a file that record the command and parameters.
+    parameter = optParser.process_opt(opt)
+    # read data and estimate the shiftsize, normalization constant
+    preprocess(parameter)
     parameter.write_parameter_to_file()
-    info("PePr finished running, thanks for all the wait!")
 
-if __name__ == '__main__':
+    # read data again, begin to process. 
+    
+    prepareData.read_files_to_arrays(parameter)
+    read_dict = prepareData.prepare_data(parameter)
+    
+    if parameter.difftest is False: 
+        swap = False
+        peakfilename = parameter.output_directory + parameter.name +"__PePr_peaks.bed"
+        sigTests.negative_binomial(read_dict, peakfilename, swap, parameter)
+    else: 
+        
+        up_peakfilename = parameter.output_directory + parameter.name+"__PePr_chip1_peaks.bed"
+        swap = False
+        sigTests.negative_binomial(read_dict, up_peakfilename, swap, parameter)
+        down_peakfilename = parameter.output_directory + parameter.name+"__PePr_chip2_peaks.bed"
+        swap = True
+        sigTests.negative_binomial(read_dict, down_peakfilename,
+                                   swap, parameter)
+
+    info("PePr finished running, thanks for all the wait!")
+	
+if __name__ == "__main__":
     try:
         main(sys.argv)
     except KeyboardInterrupt:
-        print ("user interrupted me")
+        print ("user interrupt me")
