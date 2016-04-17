@@ -4,6 +4,7 @@
 import logging
 import sys
 import time
+import os
 
 def startLog(filename):
     #configure root settings.
@@ -11,7 +12,7 @@ def startLog(filename):
     format_basic = logging.Formatter("%(levelname)-7s %(asctime)s | %(message)s", datefmt = "%m/%d/%Y %I:%M:%S %p")
 
     #Create handlers that prints DEBUG messages to log files
-    log_filename = filename+'-'+time.strftime("%m-%d-%Y-%I.%M")+"-debug.log"
+    log_filename = '-'.join([filename, time.strftime("%m-%d-%Y-%I.%M"), str(os.getpid()), "debug.log"])
     # check if the same file name existk, if yes, add an appendix to the file name and then create the file. 
     # although not very likely
    

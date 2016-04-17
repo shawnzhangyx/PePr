@@ -1,45 +1,8 @@
-import logging
-
 import logConfig
-import misc
-
-info = logging.info
-debug = logging.debug
+from logging import info, debug
 
 
-class ReadData:
-    ''' A data structure for the read data'''
-    def __init__(self, chip1, input1, chip2, input2, diff_test):
-        self.data_dict_by_strands = {}
-        self.data_dict = {}
-        self.reads_dict = {}
-        self.chip1_filename_list = chip1
-        self.input1_filename_list = input1
-        if '' in self.input1_filename_list: 
-            self.input1_filename_list.remove('')
-        self.chip2_filename_list = chip2
-        self.input2_filename_list = input2
-        if '' in self.input2_filename_list:
-            self.input2_filename_list.remove('')
-        self.chip_filename_list = chip1[:]
-        self.input_filename_list = input1[:]
-        if diff_test is True:
-            self.chip_filename_list += chip2
-            self.input_filename_list += input2
-        self.filename_list = self.chip_filename_list + self.input_filename_list
-        #print(self.filename_list)
-        
-        # remove duplicated file names. 
-        self.filename_list = list(set(self.filename_list))
-        self.chr_list = []
-        self.chr_length_dict = {}
-        self.read_total_per_file = {}
-        self.normalization_constant = {}
-        self.genome_size = 0
-        self.shift_size = {}
-        self.read_length = 0
-
-
+       
 class Parameters:
     "store the parameters that will be used in many processes."
     # ---- input parameters ---- #
@@ -55,13 +18,19 @@ class Parameters:
         self.window_size = -1
         self.difftest = None
         self.name = None
-        self.remove_redundant = None
         self.threshold = None
         self.peaktype = None
         self.normalization = None
-        self.shift_dict = {}
-        self.normalization_dict = {}
-        self.array_dict = {}
+        self.input_directory = './'
+        self.output_directory = './'
+        
+        ## dictionaries storing file related structures. 
+        self.shift_dict = {} #store the shift sizes
+        self.bin_dict = {} #store the binned reads for normalization.
+        self.lib_size_dict = {} # store the library size for normalization.
+        self.normalization_dict = {} # store the normalization constants.
+        self.array_dict = {} # store the processed read array for significance testing. 
+        
         self.num_procs = 1
         # reads specific parameters. 
         self.read_length = -1
@@ -74,8 +43,8 @@ class Parameters:
         else:
             self.process_command_line_option(opt)
         self.validate_parameters()
-        logConfig.startLog(self.name)
-        self.print_parameters()
+        logConfig.startLog(self.output_directory + self.name)
+
         # --- initialize logging --- #
 
     def process_parameter_file(self, parameter_file):
@@ -90,6 +59,7 @@ class Parameters:
                 raise Exception("There are more than 4 columns in your parameter file.")
             key = items[0].strip().lower()
             value = items[1:]
+            
             if key == "chip1":
                 self.chip1.append(value[0])
             if key == "chip2":
@@ -125,6 +95,12 @@ class Parameters:
                 self.normalization = value[0].lower()
             if key == "num_processors":
                 self.num_procs = int(value[0])
+            if key == "input_directory":
+                self.input_directory = value[0]
+            if key == "output_directory":
+                self.output_directory = value[0]
+                
+                
     def process_command_line_option(self, opt):
         self.chip1 = opt.chip1
         self.input1 = opt.input1
@@ -174,6 +150,10 @@ class Parameters:
             Typically, sharp works for TF better and broad
             for histone modifications.''')
         
+        if  len(self.normalization_dict) == 0 and self.normalization not in ['scale','compound','none']:
+            raise Exception('''Please specify a normalization method: scale, compound, none. 
+            Or give normalization constants.''')
+            
         if self.difftest is True:
             if len(self.chip1) == \
                     len(self.input1):
@@ -186,28 +166,62 @@ class Parameters:
             else:
                 self.chip2_matched_input = False
 
-    def print_parameters(self):
-        info('printing parameters')
-        #info('the chip1 files are...')
-        print self.shift_dict
-        print len(self.shift_dict)
-        #print self.chip1
+    
         
     def write_parameter_to_file(self):
         '''write the current parameters to the files so user can repeat the analysis'''
         # check if the file name has already be taken. 
-        #fileout = open(self.name+"__PePr_parameters.txt", 'w')
-        #fileout.close()
-
+        # never mind, will only implement it if really needed.
+        output_str = '\t'.join(['#filetype', 'filename', 'shift_size','normalization_factor'])+'\n' 
+        
+        for filename,filetype in zip(self.get_filenames(), self.get_filetypes()):
+            output_str += '\t'.join([filetype,filename,str(self.shift_dict[filename]), str(self.normalization_dict[filename])]) +'\n'
+                
+        output_str += 'file_format\t'+self.file_format+'\n'
+        output_str += 'peaktype\t'+self.peaktype+'\n'
+        output_str += 'windowsize\t'+str(self.window_size)+'\n'
+        output_str += 'difftest\t'+str(self.difftest)+'\n'
+        output_str += 'threshold\t'+str(self.threshold)+'\n'
+        output_str += 'normalization\t'+self.normalization+'\n'
+        output_str += 'input_directory\t'+self.input_directory+'\n'
+        output_str += 'output_directory\t'+self.output_directory+'\n'
+        output_str += 'name\t'+self.name+'\n'
+        output_str += 'num_processors\t'+str(self.num_procs)+'\n'
+        #print and save the parameters into a file. 
+        self.print_parameters(output_str)
+        with open(self.output_directory + self.name+"__PePr_parameters.txt", 'w') as outfile:
+            outfile.write(output_str)
+        return 
+            
+    def print_parameters(self, output_str):
+        info("printing running parameters:")
+        print('\n\n'+ output_str + '\n')    
+        return 
+        
     def get_filenames(self):
         return self.chip1+self.chip2+self.input1+self.input2
+    
+    def get_filetypes(self):
+        return ['chip1']*len(self.chip1) + ['chip2'] * len(self.chip2) + ['input1'] * len(self.input1) + ['input2'] * len(self.input2)
+    
+    def get_filenames_wo_bin_dict(self):
+        return [filename for filename in self.get_filenames() if filename not in self.bin_dict ]
+    
+    def get_chip_filenames(self):
+        return self.chip1+self.chip2
+        
+    def get_genome_size(self):
+        return sum(self.chr_info.values())
+        
         
 class Peak:
     "data structure that contains the significant peaks"
 
-    def __init__(self, chr, index, pvalue, qvalue):
+    def __init__(self, chr, index, group1_count, group2_count, pvalue, qvalue):
         self.chr = chr
         self.index = index
+        self.g1_count = group1_count
+        self.g2_count = group2_count
         self.pvalue = pvalue
         self.qvalue = qvalue
 

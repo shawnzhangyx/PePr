@@ -1,81 +1,107 @@
 ### module for preprocessing the data to estimate the shift size and normalization constant. 
-from collections import Counter
+#from collections import Counter
 from logging import info
+import pysam
 
-
-from fileParser import parse
-from fileParser import parse_to_bin
-from fileParser import get_chromosome_info
-from shiftSize import estimate_shiftsize
+import shiftSize
 import cal_normalization
 
 
 def preprocess(parameter):
     ''' read file and estimate shift sizes and normazliation parameters. 
     '''
-    # initialize the dictionaries
-    bin_dict = {}
-    shift_dict = {}
-    normalization_dict = {}
-    
     # use one chip sample estimate the chromosome size
     chip_filename = parameter.chip1[0]
     get_chromosome_info(parameter, chip_filename)
-    
-    
     # if shift size is not available, estimate the shift size for chip1 and input1
     if len(parameter.shift_dict) is 0:
-        shift_chip1_list = []
-        for sample_name in parameter.chip1:
-            data = parse(parameter, sample_name)
-            shift, data_bin = estimate_shiftsize(data)
-            shift_dict[sample_name] = shift 
-            shift_chip1_list.append(shift)
-            del data
-            
-            info ("shift size for %s is %d", sample_name,shift)
-            bin_dict[sample_name] = data_bin
-        shift_chip1 = sum(shift_chip1_list)/len(shift_chip1_list)
-    
-        if len(parameter.input1) > 0:
-            for sample_name in parameter.input1:
-                data_bin = parse_to_bin(parameter, sample_name)
-                bin_dict[sample_name] = data_bin
-                shift_dict[sample_name] = shift_chip1
-                info ("shift size for %s is %d", sample_name,shift_chip1)
-
-        # estimate shift size for chip2 
-        if len(parameter.chip2) > 0:
-            shift_chip2_list = []
-            for sample_name in parameter.chip2:
-                data = parse(parameter, sample_name)
-                shift, data_bin = estimate_shiftsize(data)
-                shift_dict[sample_name] = shift 
-                shift_chip2_list.append(shift)
-                del data
-                info ("shift size for %s is %d", sample_name,shift)
-                bin_dict[sample_name] = data_bin
-            shift_chip2 = sum(shift_chip2_list)/len(shift_chip2_list)
-        # process the data for input 2
-        if len(parameter.input2) > 0:
-            for sample_name in parameter.input2:
-                data_bin = parse_to_bin(parameter, sample_name)
-                bin_dict[sample_name] = data_bin
-                shift_dict[sample_name] = shift_chip2
-                info ("shift size for %s is %d", sample_name,shift_chip2)
-        
-        parameter.shift_dict = shift_dict
-         
-    elif len(parameter.normalization_dict) is 0:# if not need to estimate shift size, directly process them into bins. 
-        for sample_name in parameter.chip1 + parameter.chip2 \
-                        + parameter.input1 + parameter.input2:
-            data_bin = parse_to_bin(parameter, sample_name)
-            bin_dict[sample_name] = data_bin
-            
+        shiftSize.estimate_shiftsizes(parameter)
+    # if normalization constants are not available, estimate it.     
     if len(parameter.normalization_dict) is 0:
-        parameter.normalization_dict = cal_normalization.cal_normalization_constant(parameter, bin_dict)
-
+        cal_normalization.cal_normalization_constant(parameter)
+    
+    del parameter.bin_dict 
     return 
-    # estimate the normalization constants for chip2 
     
+
     
+def get_chr_info_bam(parameter, filename):
+    chr_info = {}
+    num = 0
+    infile = pysam.Samfile(filename, 'rb')
+    for line in infile.fetch(until_eof=True):
+        num += 1
+        if num %10000000 == 0:
+            print("{0:,} lines processed in {1}".format(num, filename))
+        if line.is_unmapped is False:
+            chr = infile.getrname(line.tid)
+            try: 
+                chr_info[chr].append(line.pos)
+            except KeyError: 
+                chr_info[chr] = [line.pos]
+    for chr in chr_info: 
+        chr_info[chr] = max(chr_info[chr])
+        info("length of %s is %d", chr, chr_info[chr] )       
+    parameter.chr_info = chr_info           
+    
+    return 
+    
+def get_chr_info_sam(parameter, filename):
+    chr_info = {}
+    num = 0
+    infile = open(filename, 'r')
+    # skip the header of the SAM file. 
+    for line in infile:
+        if not line.startswith("@"):
+            break
+    # start reading the real data
+    for line in infile:
+        num += 1
+        if num %10000000 == 0:
+            print("{0:,} lines processed in {1}".format(num, filename))
+        words = line.strip().split()
+        flag = int(words[1])
+    
+        if flag & 0x0004: #if not unmapped
+            chr, pos =  words[2], int(words[3])-1
+            try: 
+                chr_info[chr].append(pos)
+            except KeyError: 
+                chr_info[chr] = [pos]
+    for chr in chr_info: 
+        chr_info[chr] = max(chr_info[chr])
+        info("length of %s is %d", chr, chr_info[chr] )           
+    parameter.chr_info = chr_info
+    return  
+    
+def get_chr_info_bed(parameter, filename):
+    chr_info = {}
+    infile = open(filename, 'r')
+    num = 0
+    for line in infile: 
+        num += 1
+        if num %10000000 == 0:
+            print("{0:,} lines processed in {1}".format(num, filename))
+        chr,start,end,col3,col4,strand = line.strip().split()
+        try: 
+            chr_info[chr] = max(chr_info[chr], int(end))
+        except KeyError:
+            chr_info[chr] = int(end)
+            
+    for chr in chr_info: 
+        info("length of %s is %d", chr, chr_info[chr] )
+    
+    parameter.chr_info = chr_info
+    return
+
+
+def get_chromosome_info(parameter, chip_filename):
+    info ("getting chromosome info")
+    if parameter.file_format == "bam":
+         get_chr_info_bam(parameter, chip_filename)   
+    if parameter.file_format == "sam":
+         get_chr_info_sam(parameter, chip_filename)        
+    if parameter.file_format == "bed":
+         get_chr_info_bed(parameter, chip_filename)
+        
+    return 

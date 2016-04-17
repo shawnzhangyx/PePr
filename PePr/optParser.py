@@ -1,5 +1,4 @@
 from optparse import OptionParser
-from classDef import ReadData
 from classDef import Parameters
 
 
@@ -96,11 +95,5 @@ def process_opt(opt):
     opt.input2 = opt.input2.strip().split(',')
     parameter = Parameters(opt)
 
-    ## initialize the data structure
-    read_data = ReadData(
-        parameter.chip1, parameter.input1,
-        parameter.chip2, parameter.input2,
-        parameter.difftest
-        )
     #add shift size validations
-    return parameter, read_data
+    return parameter

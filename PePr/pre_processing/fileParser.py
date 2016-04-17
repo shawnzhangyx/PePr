@@ -115,107 +115,42 @@ def sam_parse_to_bin(filename):
                 
     return output 
     
-def bed_parse_to_bin(filename):
+def bed_parse_to_bin(filename, bin_dict):
     # parse the bed files into bed, do not estimate the shift sizes. 
-    output = {}
-    infile = open(filename, 'r')
 
-    for line in infile: 
-        chr,start,end,col3,col4,strand = line.strip().split()
-        if strand == "+":
-            pos = int(start) 
-        else:
-            pos = int(end)
-        try: 
-            output[(chr, pos/BIN)] += 1
-        except KeyError:
-            output[(chr,pos/BIN)] = 1
-    return output
+    with open(filename, 'r') as infile:
+        #num = 0 
+        for line in infile: 
+            chr,start,end,col3,col4,strand = line.strip().split()
+            if strand == "+":
+                pos = int(start) 
+            else:
+                pos = int(end)
+            try: 
+                bin_dict[chr][int(pos/BIN)] += 1
+            except IndexError:      pass
+                
+    return bin_dict
     
     
     
 def parse_to_bin(parameter, filename):
+    ''' read file into arrays that can be used on estimate the normalization.'''
+    bin_dict = {}
+    for chr in parameter.chr_info:
+        row_num = int(parameter.chr_info[chr]/BIN) - 1
+        bin_dict[chr] = numpy.zeros(row_num, dtype = numpy.float64)
+    
     info ("start reading %s", filename)
     if parameter.file_format == "bam":
-        data = bam_parse_to_bin(filename)
+        bin_dict = bam_parse_to_bin(filename, bin_dict)
     if parameter.file_format == "sam":
-        data = sam_parse_to_bin(filename)
+        bin_dict = sam_parse_to_bin(filename, bin_dict)
     if parameter.file_format == "bed":
-        data = bed_parse_to_bin(filename)
+        bin_dict = bed_parse_to_bin(filename, bin_dict)
+        
     return data
         
     
-def get_chr_info_bam(parameter, filename):
-    chr_info = {}
-        
-    infile = pysam.Samfile(filename, 'rb')
-    for line in infile.fetch():
-        if line.is_unmapped is False:
-            chr = infile.getrname(line.tid)
-            try: 
-                chr_info[chr].append(line.pos)
-            except KeyError: 
-                chr_info[chr] = [line.pos]
-    for chr in chr_info: 
-        chr_info[chr] = max(chr_info[chr])
-        info("length of %s is %d", chr, chr_info[chr] )       
-    parameter.chr_info = chr_info           
-    
-    return 
-    
-def get_chr_info_sam(parameter, filename):
-    chr_info = {}
-    
-    infile = open(filename, 'r')
-    # skip the header of the SAM file. 
-    for line in infile:
-        if not line.startswith("@"):
-            break
-    # start reading the real data
-    for line in infile:
-        words = line.strip().split()
-        flag = int(words[1])
-    
-        if flag & 0x0004: #if not unmapped
-            chr, pos =  words[2], int(words[3])-1
-            try: 
-                chr_info[chr].append(pos)
-            except KeyError: 
-                chr_info[chr] = [pos]
-    for chr in chr_info: 
-        chr_info[chr] = max(chr_info[chr])
-        info("length of %s is %d", chr, chr_info[chr] )           
-    parameter.chr_info = chr_info
-    return  
-    
-def get_chr_info_bed(parameter, filename):
-    chr_info = {}
-    infile = open(filename, 'r')
-    
-    for line in infile: 
-        chr,start,end,col3,col4,strand = line.strip().split()
-        try: 
-            chr_info[chr] = max(chr_info[chr], int(end))
-        except KeyError:
-            chr_info[chr] = int(end)
-            
-    for chr in chr_info: 
-        info("length of %s is %d", chr, chr_info[chr] )
-    
-    parameter.chr_info = chr_info
-    return
-
-
-def get_chromosome_info(parameter, chip_filename):
-    info ("getting chromosome info")
-    if parameter.file_format == "bam":
-         get_chr_info_bam(parameter, chip_filename)   
-    if parameter.file_format == "sam":
-         get_chr_info_sam(parameter, chip_filename)        
-    if parameter.file_format == "bed":
-         get_chr_info_bed(parameter, chip_filename)
-        
-    return 
-
     
         
