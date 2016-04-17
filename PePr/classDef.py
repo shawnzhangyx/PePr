@@ -168,8 +168,13 @@ class Parameters:
                 self.chip2_matched_input = True
             else:
                 self.chip2_matched_input = False
-
-    
+        
+        # add '/' to the end of directories if not. 
+        if not self.input_directory.endswith('/'):
+            self.input_directory += '/'
+        if not self.output_directory.endswith('/'):
+            self.output_directory += '/'
+        # can change relative directory to absolute directory. 
         
     def write_parameter_to_file(self):
         '''write the current parameters to the files so user can repeat the analysis'''
