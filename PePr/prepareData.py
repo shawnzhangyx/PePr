@@ -6,8 +6,9 @@ import itertools
 
 def read_bam(filename, data_dict, parameter):
     shift_size = parameter.shift_dict[filename]
+    read_length = parameter.read_length_dict[filename]
     move_size = parameter.window_size/2
-    num = 0    
+    num = 0 
     infile = pysam.Samfile(parameter.input_directory+filename, 'rb')
     for line in infile.fetch(until_eof = True):
         num += 1
@@ -18,16 +19,17 @@ def read_bam(filename, data_dict, parameter):
             if line.is_reverse is False:
                 pos = line.pos + shift_size
             else:
-                pos = line.pos - shift_size
+                pos = line.pos + read_length- shift_size
             try: 
                 data_dict[chr][int(pos/move_size)] += 1
-            except IndexError: pass # index out of range at the end of chr. 
+            except (IndexError, KeyError) as e: pass # index out of range at the end of chr. 
                 
     return data_dict           
     
 def read_sam(filename,data_dict, parameter):
 
     shift_size = parameter.shift_dict[filename]
+    read_length = parameter.read_length_dict[filename]
     move_size = parameter.window_size/2
     num = 0
     infile = open(parameter.input_directory+filename, 'r')
@@ -43,15 +45,15 @@ def read_sam(filename,data_dict, parameter):
         words = line.strip().split()
         flag = int(words[1])
     
-        if flag & 0x0004: #if not unmapped
+        if not flag & 0x0004: #if not unmapped
             chr, pos =  words[2], int(words[3])-1
-            if flag & 0x0010:
-                pos -= shift_size
+            if flag & 0x0010: #if reversed
+                pos = pos + read_length - shift_size
             else: 
                 pos += shift_size
             try: 
                 data_dict[chr][int(pos/move_size)] += 1
-            except IndexError: pass # index out of range at end of chr.
+            except (IndexError, KeyError) as e: pass # index out of range at end of chr.
                 
                 
     return data_dict 
@@ -74,7 +76,7 @@ def read_bed(filename, data_dict, parameter):
         else: 
             pos = int(end) - shift_size
         try: data_dict[chr][int(pos/move_size)] += 1
-        except IndexError:    pass
+        except (IndexError, KeyError) as e:    pass
         
     return data_dict
         
@@ -91,7 +93,7 @@ def read_file_to_array(filename, parameter):
         data_dict = read_bed(filename, data_dict, parameter)
     elif parameter.file_format == "bam":
         data_dict = read_bam(filename, data_dict, parameter)
-    elif paramter.file_format == "sam":
+    elif parameter.file_format == "sam":
         data_dict = read_sam(filename, data_dict, parameter)
         
     for chr in parameter.chr_info: 

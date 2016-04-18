@@ -18,16 +18,33 @@ def cal_normalization_constant(parameter):
     
 
 def scale(parameter):
-    for filename in parameter.get_filenames():
-        #print filename
-        line_num = get_file_line_counts(filename, parameter)
-        parameter.lib_size_dict[filename] = line_num
-    
+    ''' scale the libaries so the total number of reads are the same'''
+
+    if parameter.num_procs < 2:
+        for filename in parameter.get_filenames():
+            #print filename
+            line_num = get_file_line_counts(filename, parameter)
+            parameter.lib_size_dict[filename] = line_num
+    else:
+        pool =  multiprocessing.Pool(parameter.num_procs)
+        p = pool.map_async(get_file_line_counts_wrapper, itertools.izip(parameter.get_filenames(), itertools.repeat(parameter)),1)
+        try: results = p.get()
+        except KeyboardInterrupt:
+            exit(1)
+        for filename, line_num in zip(parameter.get_filenames(), results):
+            parameter.lib_size_dict[filename] = line_num
+
     lib_size_mean = sum(parameter.lib_size_dict.values())/len(parameter.lib_size_dict)
     for filename in parameter.get_filenames():
         parameter.normalization_dict[filename] = float(lib_size_mean)/parameter.lib_size_dict[filename]     
     return 
         
+def get_file_line_counts_wrapper(args):
+    try:
+        return get_file_line_counts(*args)
+    except KeyboardInterrupt, e:
+        pass
+
 def get_file_line_counts(filename, parameter):
     # keep the line count. 
     idx = 0
@@ -40,9 +57,12 @@ def get_file_line_counts(filename, parameter):
     elif parameter.file_format == "sam":
         with open(filename, 'r') as infile:
             for line in infile:
+                if not line.startswith('@'): #skip the header lines.
+                    break
+            for line in infile:
                 words = line.strip().split()
                 flag = int(words[1])
-                if flag & 0x004:
+                if not flag & 0x004:
                     idx += 1
     elif parameter.file_format == "bam":
         with pysam.Samfile(filename, 'rb') as infile:
@@ -169,17 +189,19 @@ def input_ncis(ref, target):
     READ_MAX = 200
     MIN_GENOME_COVERAGE = 0.75
     pre_ratio = 1
-    file = open("input_norm.txt",'w')
+    #file = open(str(sum(target))+"input_norm.txt",'w')
     for r_cut in range(1, READ_MAX):
         index = numpy.where(combined <= r_cut)[0]
         percent_genome_covered = float(len(index))/len(combined)
-        ratio = numpy.sum(ref[index])/numpy.sum(target[index])
-        file.write(str(percent_genome_covered)+'\t'+str(ratio)+'\n')
+        target_sum = numpy.sum(target[index]) or 1.0
+        ratio = numpy.sum(ref[index])/target_sum
+        #file.write(str(r_cut)+'\t'+str(numpy.sum(ref[index]))+ '\t' +
+        #        str(target_sum) +'\t'+ str(ratio)+ '\n')
         if percent_genome_covered > MIN_GENOME_COVERAGE and ratio > pre_ratio:
             return ratio
         else: 
             pre_ratio = ratio
-    file.close()
+    #file.close()
     return ratio
     
 def parse_to_bin_wrapper(args):
@@ -191,7 +213,7 @@ def parse_to_bin_wrapper(args):
 def parse_to_bin(filename, bin_size, parameter):
     bin_dict = {}
     for chr in parameter.chr_info:
-        row_num = int(parameter.chr_info[chr]/bin_size) - 1
+        row_num = int(parameter.chr_info[chr]/bin_size)
         bin_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
         
     if parameter.file_format == "bed":
@@ -214,45 +236,53 @@ def parse_to_bin(filename, bin_size, parameter):
 def parse_bed_to_bin(filename, bin_size, bin_dict, parameter):
     ''' parse the bed files into bin '''
     infile = open(parameter.input_directory+filename, 'r')
+    num = 0
     for line in infile: 
+        num += 1
+        if num %10000000 == 0:
+            print("{0:,} lines processed in {1}".format(num, filename))
         chr,start,end,col3,col4,strand = line.strip().split()
-        if strand == "+":
-            pos = int(start)           
-        else: 
-            pos = int(end)
+        pos = int(start)           
         try: bin_dict[chr][int(pos/bin_size)] += 1
-        except IndexError: pass # index out of range at the end of chr
+        except (IndexError, KeyError) as e: pass # index out of range at the end of chr
     
             
     return bin_dict
 
 def parse_bam_to_bin(filename, bin_size, bin_dict, parameter):
-
+    num = 0
     infile = pysam.Samfile(parameter.input_directory+filename, 'rb')
     for line in infile.fetch(until_eof=True):
+        num += 1
+        if num %10000000 == 0:
+            print("{0:,} lines processed in {1}".format(num, filename))
         if line.is_unmapped is False:
             chr = infile.getrname(line.tid)
             try: 
                 bin_dict[chr][int(line.pos/BIN)] += 1
-            except IndexError: pass # index out of range at the end of chr. 
+            except (IndexError, KeyError) as e: pass # index out of range at the end of chr. 
     return bin_dict           
     
-def parse_sam_to_bin(filename,bin_size, bin_dict, parameter):
+def parse_sam_to_bin(filename, bin_size, bin_dict, parameter):
     infile = open(parameter.input_directory+filename, 'r')
     # skip the header of the SAM file. 
     for line in infile:
         if not line.startswith("@"):
             break
     # start reading the real data
+    num = 0
     for line in infile:
+        num += 1
+        if num %10000000 == 0:
+            print("{0:,} lines processed in {1}".format(num, filename))
         words = line.strip().split()
         flag = int(words[1])
     
-        if flag & 0x0004: #if not unmapped
+        if not flag & 0x0004: #if not unmapped
             chr, pos =  words[2], int(words[3])-1
             try: 
-                bin_dict[chr][int(line.pos/bin_size)] += 1
-            except IndexError: pass # index out of range at end of chr.
+                bin_dict[chr][int(pos/bin_size)] += 1
+            except (IndexError, KeyError) as e: pass # index out of range at end of chr.
                 
     return bin_dict 
     

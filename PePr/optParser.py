@@ -33,7 +33,7 @@ def opt_parser(argv):
             metavar="FORMAT")
     parser.add_option(
             "-s", "--shiftsize", action="store",
-            type="string", dest="shift_size", default="-1",
+            type="int", dest="shift_size", default=-1,
             help="Half the fragment size.", metavar="SHIFTSIZE")
     parser.add_option(
             "-w", "--windowsize", action="store",
@@ -86,10 +86,10 @@ def opt_parser(argv):
 def process_opt(opt):
     ''' validate the parameters that the user specified'''
     # initial process the filenames.
-    opt.chip1 = opt.chip1.strip().split(',')
-    opt.chip2 = opt.chip2.strip().split(',')
-    opt.input1 = opt.input1.strip().split(',')
-    opt.input2 = opt.input2.strip().split(',')
+    opt.chip1 = [] if opt.chip1 is '' else opt.chip1.strip().split(',') 
+    opt.chip2 = [] if opt.chip2 is '' else opt.chip2.strip().split(',')
+    opt.input1 = [] if opt.input1 is '' else opt.input1.strip().split(',')
+    opt.input2 = [] if opt.input2 is '' else opt.input2.strip().split(',')
     opt.normalization = opt.normalization.lower()
     parameter = Parameters(opt)
 

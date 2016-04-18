@@ -25,6 +25,7 @@ class Parameters:
         self.output_directory = './'
         
         ## dictionaries storing file related structures. 
+        self.read_length_dict = {} # store the read length
         self.shift_dict = {} #store the shift sizes
         self.bin_dict = {} #store the binned reads for normalization.
         self.lib_size_dict = {} # store the library size for normalization.

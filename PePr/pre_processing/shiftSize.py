@@ -49,10 +49,9 @@ def estimate_shiftsize(chip, parameter):
     info("estimating the shift size for %s", chip)
     info_dict = {} # saving the info matrix for deriving the shift size data. 
     bin_dict = {}
-    SIZE = 2000 #using the top 2000 peaks to estimate the shift size. 
     
     for chr in parameter.chr_info:
-        row_num = int(parameter.chr_info[chr]/BIN) - 1
+        row_num = int(parameter.chr_info[chr]/BIN) 
         bin_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
         info_dict[chr] = numpy.zeros((row_num,4),dtype=numpy.int64)
     
@@ -73,22 +72,29 @@ def estimate_shiftsize(chip, parameter):
             info_array = info_dict[chr]
             bin_array = bin_dict[chr]
     
-    #print info_array[66090:66095], bin_array[66090:66095]
+    #using the top 2000 peaks or top 10% of the windows to estimate the shift size, whichever is smaller. 
+    SIZE = 2000
+    top = min([SIZE, int(0.1*len(bin_array))])
+    #print top
     rank = rankdata(-bin_array)
     order = numpy.argsort(rank)
-    info_array_top = info_array[order][range(SIZE)]
+    info_array_top = info_array[order][range(top)]
     # get rid of windows that have only reads coming from one strand
     info_array_top = info_array_top[numpy.where(info_array_top[:,1]>0)]
     info_array_top = info_array_top[numpy.where(info_array_top[:,3]>0)]
     shift_array = info_array_top[:,2]/info_array_top[:,3] - info_array_top[:,0]/info_array_top[:,1]
     
     ### output shift_size
-    with open(chip+'.shift.txt', 'w') as fileout:
-        for shift in shift_array:
-            fileout.write(str(shift)+'\n')
+    #with open(chip+'.shift.txt', 'w') as fileout:
+    #    for shift in shift_array:
+    #        fileout.write(str(shift)+'\n')
            
     
-    shift_size = int(numpy.median(shift_array)/2)
+    frag_size = int(numpy.median(shift_array))
+    if frag_size < 0:
+        frag_size = 0
+    frag_size += parameter.read_length_dict[chip]
+    shift_size = frag_size/2
     info("The shift size for %s is %d", chip, shift_size)
     return (shift_size, bin_array)
 
@@ -100,22 +106,21 @@ def parse_bed_for_shift_bin(filename, info_dict, bin_dict, parameter):
         num += 1
         if num %10000000 == 0:
             print("{0:,} lines processed in {1}".format(num, filename))
+        pos = int(start)
         if strand == "+":
-            pos = int(start)
             try: 
                 info_dict[chr][int(pos/BIN),0] += pos%BIN
                 info_dict[chr][int(pos/BIN),1] += 1
-            except IndexError:    pass
+            except (IndexError, KeyError) as e:    pass
             
         else: 
-            pos = int(end)
             try: 
                 info_dict[chr][int(pos/BIN),2] += pos%BIN
                 info_dict[chr][int(pos/BIN),3] += 1
-            except IndexError:    pass
+            except (IndexError, KeyError) as e:    pass
             
         try: bin_dict[chr][int(pos/BIN)] += 1
-        except IndexError:    pass
+        except (IndexError, KeyError):    pass
         
     return info_dict, bin_dict
         
@@ -132,16 +137,16 @@ def parse_bam_for_shift_bin(filename, info_dict, bin_dict, parameter):
                 try:
                     info_dict[chr][int(line.pos/BIN),0] += line.pos%BIN
                     info_dict[chr][int(line.pos/BIN),1] += 1
-                except IndexError: pass
+                except (IndexError, KeyError) as e: pass
             else:
                 try:
                     info_dict[chr][int(line.pos/BIN),2] += line.pos%BIN
                     info_dict[chr][int(line.pos/BIN),3] += 1
-                except IndexError: pass
+                except (IndexError, KeyError) as e: pass
 
             try: 
                 bin_dict[chr][int(line.pos/BIN)] += 1
-            except IndexError: pass # index out of range at the end of chr. 
+            except (IndexError, KeyError) as e: pass # index out of range at the end of chr. 
                 
     return info_dict, bin_dict           
     
@@ -160,22 +165,22 @@ def parse_sam_for_shift_bin(filename,info_dict, bin_dict, parameter):
         words = line.strip().split()
         flag = int(words[1])
     
-        if flag & 0x0004: #if not unmapped
+        if not flag & 0x0004: #if not unmapped
             chr, pos =  words[2], int(words[3])-1
             if flag & 0x0010: # if reverse
                 try:
-                    info_dict[chr][int(pos/BIN),0] += pos%BIN
-                    info_dict[chr][int(pos/BIN),1] += 1
-                except IndexError:    pass
+                    info_dict[chr][int(pos/BIN),2] += pos%BIN
+                    info_dict[chr][int(pos/BIN),3] += 1
+                except (IndexError, KeyError) as e:    pass
             
             else: 
                 try:
-                    info_dict[chr][int(line.pos/BIN),2] += pos%BIN
-                    info_dict[chr][int(line.pos/BIN),3] += 1
-                except IndexError: pass
+                    info_dict[chr][int(pos/BIN),0] += pos%BIN
+                    info_dict[chr][int(pos/BIN),1] += 1
+                except (IndexError, KeyError) as e: pass
             try: 
-                bin_dict[chr][int(line.pos/BIN)] += 1
-            except IndexError: pass # index out of range at end of chr.
+                bin_dict[chr][int(pos/BIN)] += 1
+            except (IndexError, KeyError) as e: pass # index out of range at end of chr.
                 
                 
     return info_dict, bin_dict

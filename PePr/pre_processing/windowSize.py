@@ -79,12 +79,15 @@ def estimate_window_size(filename, parameter, iter=500):
                 else:
                     break
         peak_len_list.append((1+i_l+i_r)*bin_size)
-    print peak_len_list
+    # print peak_len_list
     window_size = int(numpy.median(peak_len_list))
     info ("Estimated window size is %d", window_size)
     if window_size < 100:
         window_size = 100
         info("Estimated window size too narrow, use 100 instead")
+    elif window_size > 1000:
+        window_size = 1000
+        info("Estimated window size too large, use 1000 instead")
     parameter.window_size = window_size
     return 
 
