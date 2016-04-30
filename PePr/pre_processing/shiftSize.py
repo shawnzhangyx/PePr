@@ -5,7 +5,6 @@ from logging import info
 import numpy
 import itertools 
 import pysam 
-
 BIN = 10000
 
 def estimate_shiftsizes(parameter):
@@ -73,7 +72,7 @@ def estimate_shiftsize(chip, parameter):
             bin_array = bin_dict[chr]
     
     #using the top 2000 peaks or top 10% of the windows to estimate the shift size, whichever is smaller. 
-    SIZE = 2000
+    SIZE = 20000
     top = min([SIZE, int(0.1*len(bin_array))])
     #print top
     rank = rankdata(-bin_array)
@@ -85,9 +84,9 @@ def estimate_shiftsize(chip, parameter):
     shift_array = info_array_top[:,2]/info_array_top[:,3] - info_array_top[:,0]/info_array_top[:,1]
     
     ### output shift_size
-    #with open(chip+'.shift.txt', 'w') as fileout:
-    #    for shift in shift_array:
-    #        fileout.write(str(shift)+'\n')
+    with open(chip+'.shift.txt', 'w') as fileout:
+        for shift in shift_array:
+            fileout.write(str(shift)+'\n')
            
     
     frag_size = int(numpy.median(shift_array))
@@ -185,6 +184,3 @@ def parse_sam_for_shift_bin(filename,info_dict, bin_dict, parameter):
                 
     return info_dict, bin_dict
             
-        
-        
-        

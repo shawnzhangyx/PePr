@@ -8,13 +8,15 @@ from scipy.special import psi
 from scipy.stats.distributions import norm
 from operator import attrgetter, itemgetter
 import multiprocessing
+from multiprocessing import sharedctypes
 import itertools
 import time
+import gc 
 
 debug = logging.debug
 info = logging.info
 
-def get_candidate_window2(read, x, y, repx, repy, threshold):
+def get_candidate_window2( x, y, repx, repy, threshold):
     # using PHI = 1e6 to prescreen the genome 
     PHI = 1e6
     GAMMA_HAT = 1.0
@@ -99,26 +101,26 @@ def cal_FDR(peak_list, num_tests):
 
 
     
-def per_chr_nbtest(read_array, chr, swap,threshold, peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep):
+def per_chr_nbtest(read_array, chr, swap,threshold, peaktype,difftest, start1,end1,start2,end2,test_rep,control_rep):
     t1 = time.time()
     sig_peaks_list = []
-    read_array[numpy.where(read_array ==0)] = 1
     y_bar_array = numpy.mean(read_array[:, start1:end1], 1)
     x_bar_array = numpy.mean(read_array[:, start2:end2], 1)
     if swap: #swap the chip and control reads.
         x_bar_array, y_bar_array = y_bar_array, x_bar_array
-    cand_index = get_candidate_window2(read_array, x_bar_array,
+    cand_index = get_candidate_window2( x_bar_array,
                     y_bar_array, control_rep, test_rep, threshold)
     debug("There are %d candidate windows for %s (PID:%d)", len(cand_index), chr, os.getpid())
     if not swap:
         disp_list = numpy.array([estimate_area_dispersion_factor(read_array,
-                test_rep, control_rep, idx, peaktype, parameter.difftest)
+                test_rep, control_rep, idx, peaktype, difftest)
                 for idx in cand_index])
     else:
         disp_list = numpy.array([estimate_area_dispersion_factor(read_array,
-                control_rep, test_rep, idx, peaktype, parameter.difftest)
+                control_rep, test_rep, idx, peaktype, difftest)
                 for idx in cand_index])
     #debug("finished estimating dispersion for %s", chr)
+   # return []
     cand_x_bar_array = x_bar_array[cand_index]
     cand_y_bar_array = y_bar_array[cand_index]
     gamma_array = cand_y_bar_array / cand_x_bar_array
@@ -150,10 +152,16 @@ def per_chr_nbtest_helper(args):
         return per_chr_nbtest(*args)
     except KeyboardInterrupt, e:
         pass 
-        
-    
-def negative_binomial(read_dict, peakfilename, swap, parameter):
+
+def mock_helper(args):
+    return mock(*args)
+
+def mock(d,p):
+    return []        
+ 
+def negative_binomial(read_dict,peakfilename, swap, parameter):
     '''the main function that test for significant windows.'''
+    print len(read_dict)
     # Initialize the parameters
     peaktype = parameter.peaktype
     threshold = parameter.threshold
@@ -181,20 +189,32 @@ def negative_binomial(read_dict, peakfilename, swap, parameter):
 
     # initialize basic array structures
     sig_peaks_list = []    
-
+    
     # single-core version. 
     if parameter.num_procs <2:
-        for chr in read_dict:
+        for chr in parameter.chr_info:
             read_array = read_dict[chr]
             sig_peaks_list.extend(per_chr_nbtest(read_array, chr, swap,threshold, peaktype,parameter, start1,end1,start2,end2,test_rep,control_rep))
     # multi-core version
     else: 
-        pool = multiprocessing.Pool(processes=parameter.num_procs)
-        p = pool.map_async(per_chr_nbtest_helper, [(read_dict[chr],chr, swap,threshold, peaktype, parameter, 
-                        start1,end1,start2,end2,test_rep,control_rep) for chr in read_dict], 1)
-        try: result_list = p.get()
-        except KeyboardInterrupt:
-            exit(1)
+        result_list = []
+        def log_result(result):
+            result_list.append(result)
+        try: 
+            import sharedmem
+            for chr in parameter.chr_info:
+                read_array = read_dict[chr]
+                read_dict[chr] = sharedmem.copy(read_array)
+        except ImportError:
+            print "Import sharedmem package failed"
+            
+        pool = multiprocessing.Pool(processes=parameter.num_procs)#,maxtasksperchild=1)
+        for chr in parameter.chr_info:
+            read_array = read_dict[chr]
+            pool.apply_async(per_chr_nbtest, (read_array, chr, swap,threshold, peaktype, parameter.difftest, 
+                       start1,end1,start2,end2,test_rep,control_rep),callback=log_result)
+        pool.close()
+        pool.join()
         sig_peaks_list = list(itertools.chain(*result_list))
             
     #calculate the BH FDR. 
@@ -226,6 +246,8 @@ def negative_binomial(read_dict, peakfilename, swap, parameter):
     # sort the peak list
     final_peak_list = sorted(final_peak_list, key=itemgetter(4))
     info("%d peaks called.", len(final_peak_list))
+    if len(final_peak_list) == 0:
+        return 
     #start output peaks. 
     all_fc = [peak[3] for peak in final_peak_list] 
     #print all_fc

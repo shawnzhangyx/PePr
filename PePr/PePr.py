@@ -10,10 +10,9 @@ from logging import info
 
 # local modules
 import optParser
-from pre_processing import preprocess
+from pre_processing import initialize
 import prepareData
 import sigTests
-from classDef import Parameters
 
 
 
@@ -26,7 +25,7 @@ def main(argv):
     opt = optParser.opt_parser(argv)
     parameter = optParser.process_opt(opt)
     # read data and estimate the shiftsize, normalization constant
-    preprocess(parameter)
+    initialize.preprocess(parameter)
     parameter.write_parameter_to_file()
 
     # read data again, begin to process. 

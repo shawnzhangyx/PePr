@@ -1,6 +1,11 @@
 import logConfig
 from logging import info, debug
 
+## global variable read_dict
+read_dict = {}
+def init_dict():
+    global read_dict
+    read_dict = {}
 
        
 class Parameters:

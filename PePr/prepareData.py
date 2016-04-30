@@ -222,6 +222,9 @@ def prepare_data(parameter):
         read_dict = prepare_data_diff_binding(parameter)
     # remove the array dict when it is read. 
     del parameter.array_dict 
+    for chr in parameter.chr_info:
+        read_array = read_dict[chr]
+        read_array[numpy.where(read_array ==0)] = 1
     return read_dict
         
         
