@@ -116,28 +116,39 @@ def get_read_length_info(parameter):
 def get_read_length_from_bam(parameter):
     for filename in parameter.get_filenames():
         with pysam.Samfile(parameter.input_directory+filename, 'rb') as infile:
-            line = infile.fetch(until_eof=True).__next__()
-            length = line.alen
+            length_list = []
+            for idx in range(1000):
+                line = infile.fetch(until_eof=True).__next__()
+                length_list.append(line.alen)
+            length = max(length_list)
         parameter.read_length_dict[filename] = length
     return
 
 def get_read_length_from_sam(parameter):
     for filename in parameter.get_filenames():
         with open(parameter.input_directory+filename, 'r') as infile:
+            idx = 0
+            length_list = []
             for line in infile:
                 words = line.strip().split()
                 if not words[0].startswith("@"):
-                    length = len(words[9])
-                    break
+                    length_list.append(len(words[9]))
+                    idx += 1
+                    if idx == 1000:
+                        break
+            length = max(length_list)
         parameter.read_length_dict[filename] = length
     return 
 
 def get_read_length_from_bed(parameter):
     for filename in parameter.get_filenames():
         with open(parameter.input_directory+filename, 'r') as infile:
-            line = infile.readline()
-            chr,start,end,col3,col4,strand = line.strip().split()
-            length = int(end)-int(start)
+            length_list = []
+            for idx in range(1000):
+                line = infile.readline()
+                chr,start,end,col3,col4,strand = line.strip().split()
+                length_list.append(int(end)-int(start))
+            length = max(length_list)
         parameter.read_length_dict[filename] = length
     return
 
