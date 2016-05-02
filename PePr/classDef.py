@@ -226,7 +226,18 @@ class Parameters:
         
     def get_genome_size(self):
         return sum(self.chr_info.values())
-        
+    
+    def get_top3_chr(self):
+        values = self.chr_info.values()
+        values.sort()
+        values.reverse()
+        values_top3 = values[0:3]
+        chr_top3 = []
+        for value in values_top3:
+            for chr in self.chr_info:
+                if self.chr_info[chr] == value:
+                    chr_top3.append(chr)
+        return chr_top3
         
 class Peak:
     "data structure that contains the significant peaks"

@@ -5,6 +5,9 @@ from logging import info
 import numpy
 import itertools 
 import pysam 
+import array
+
+
 BIN = 10000
 
 def estimate_shiftsizes(parameter):
@@ -53,53 +56,39 @@ def estimate_shiftsize(chip, parameter):
         row_num = int(parameter.chr_info[chr]/BIN) 
         bin_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
         info_dict[chr] = numpy.zeros((row_num,4),dtype=numpy.int64)
-    
-    if parameter.file_format == "bed":
-        info_dict, bin_dict = parse_bed_for_shift_bin(chip, info_dict, bin_dict, parameter)
-    elif parameter.file_format == "bam":
-        info_dict, bin_dict = parse_bam_for_shift_bin(chip, info_dict, bin_dict, parameter)
-    elif parameter.file_format == "sam":
-        info_dict, bin_dict = parse_sam_for_shift_bin(chip, info_dict, bin_dict, parameter)
-    
-    #info_array = numpy.array([],dtype=numpy.float64)
-    #bin_array = numpy.array([],dtype=numpy.float64)
-    for idx,chr in enumerate(parameter.chr_info):
-        try: 
-            info_array = numpy.row_stack((info_array, info_dict[chr]))
-            bin_array = numpy.append(bin_array, bin_dict[chr])
+    # parsing dictionary
+    parse_dict = {'bed':parse_bed_for_f_r,'bam':parse_bam_for_f_r,'sam':parse_sam_for_f_r}    
+    forward, reverse = parse_dict[parameter.file_format](chip, parameter)
+    shift_list =[]
+    for chr in parameter.get_top3_chr():
+        chr_f,chr_r = forward[chr],reverse[chr]
+        shift_list.append(cross_cor(chr_f,chr_r))
+    shift_list.sort()
+    frag_size = shift_list[len(shift_list)/2]
+    ### parse the reads into bins
+    for chr in parameter.chr_info:
+        for pos in forward[chr]:
+            try: bin_dict[chr][pos/BIN] += 1 
+            except IndexError:
+                pass
+        for pos in reverse[chr]:
+            try: bin_dict[chr][pos/BIN] += 1
+            except IndexError:
+                pass
+        try: bin_array = numpy.append(bin_array, bin_dict[chr])
         except UnboundLocalError:
-            info_array = info_dict[chr]
             bin_array = bin_dict[chr]
-    
-    #using the top 2000 peaks or top 10% of the windows to estimate the shift size, whichever is smaller. 
-    SIZE = 20000
-    top = min([SIZE, int(0.1*len(bin_array))])
-    #print top
-    rank = rankdata(-bin_array)
-    order = numpy.argsort(rank)
-    info_array_top = info_array[order][range(top)]
-    # get rid of windows that have only reads coming from one strand
-    info_array_top = info_array_top[numpy.where(info_array_top[:,1]>0)]
-    info_array_top = info_array_top[numpy.where(info_array_top[:,3]>0)]
-    shift_array = info_array_top[:,2]/info_array_top[:,3] - info_array_top[:,0]/info_array_top[:,1]
-    
-    ### output shift_size
-    with open(chip+'.shift.txt', 'w') as fileout:
-        for shift in shift_array:
-            fileout.write(str(shift)+'\n')
-           
-    
-    frag_size = int(numpy.median(shift_array))
-    if frag_size < 0:
-        frag_size = 0
+
     frag_size += parameter.read_length_dict[chip]
     shift_size = frag_size/2
     info("The shift size for %s is %d", chip, shift_size)
     return (shift_size, bin_array)
 
-def parse_bed_for_shift_bin(filename, info_dict, bin_dict, parameter):
+def parse_bed_for_f_r(filename, parameter):
     infile = open(parameter.input_directory+filename, 'r')
     num = 0
+    forward = {}
+    reverse = {}
     for line in infile: 
         chr,start,end,col3,col4,strand = line.strip().split()
         num += 1
@@ -107,51 +96,43 @@ def parse_bed_for_shift_bin(filename, info_dict, bin_dict, parameter):
             print("{0:,} lines processed in {1}".format(num, filename))
         pos = int(start)
         if strand == "+":
-            try: 
-                info_dict[chr][int(pos/BIN),0] += pos%BIN
-                info_dict[chr][int(pos/BIN),1] += 1
-            except (IndexError, KeyError) as e:    pass
-            
+            try: forward[chr].append(pos)
+            except KeyError:
+                forward[chr] = array.array('i',[pos])
         else: 
-            try: 
-                info_dict[chr][int(pos/BIN),2] += pos%BIN
-                info_dict[chr][int(pos/BIN),3] += 1
-            except (IndexError, KeyError) as e:    pass
+            try: reverse[chr].append(pos)
+            except KeyError:
+                reverse[chr] = array.array('i',[pos])
             
-        try: bin_dict[chr][int(pos/BIN)] += 1
-        except (IndexError, KeyError):    pass
+    return forward, reverse
         
-    return info_dict, bin_dict
-        
-def parse_bam_for_shift_bin(filename, info_dict, bin_dict, parameter):
-    num = 0 
-    infile = pysam.Samfile(parameter.input_directory+filename, 'rb')
-    for line in infile.fetch(until_eof=True):
+def parse_bam_for_f_r(filename, parameter):
+    num = 0
+    forward = {}
+    reverse = {}
+
+    infile =pysam.Samfile(parameter.input_directory+filename, 'rb')
+    for line in infile.fetch(until_eof = True):
         num += 1
-        if num %10000000 == 0:
-            print("{0:,} lines processed in {1}".format(num, filename))
+        if num % 1000000 == 0 :
+            print ("{0:,} lines processed in {1}".format(num, filename))
         if line.is_unmapped is False:
             chr = infile.getrname(line.tid)
             if line.is_reverse is False:
-                try:
-                    info_dict[chr][int(line.pos/BIN),0] += line.pos%BIN
-                    info_dict[chr][int(line.pos/BIN),1] += 1
-                except (IndexError, KeyError) as e: pass
+                try: forward[chr].append(line.pos)
+                except KeyError:
+                    forward[chr] = array.array('i',[line.pos])
             else:
-                try:
-                    info_dict[chr][int(line.pos/BIN),2] += line.pos%BIN
-                    info_dict[chr][int(line.pos/BIN),3] += 1
-                except (IndexError, KeyError) as e: pass
-
-            try: 
-                bin_dict[chr][int(line.pos/BIN)] += 1
-            except (IndexError, KeyError) as e: pass # index out of range at the end of chr. 
-                
-    return info_dict, bin_dict           
+                try: reverse[chr].append(line.pos)
+                except KeyError:
+                    reverse[chr] = array.array('i',[line.pos])
+    return forward,reverse
     
-def parse_sam_for_shift_bin(filename,info_dict, bin_dict, parameter):
+def parse_sam_for_f_r(filename, parameter):
     infile = open(parameter.input_directory+filename, 'r')
     num = 0
+    forward = {}
+    reverse = {}
     # skip the header of the SAM file. 
     for line in infile:
         if not line.startswith("@"):
@@ -159,28 +140,31 @@ def parse_sam_for_shift_bin(filename,info_dict, bin_dict, parameter):
     # start reading the real data
     for line in infile:
         num += 1
-        if num %10000000 == 0:
+        if num % 10000000 == 0:
             print("{0:,} lines processed in {1}".format(num, filename))
         words = line.strip().split()
         flag = int(words[1])
     
         if not flag & 0x0004: #if not unmapped
             chr, pos =  words[2], int(words[3])-1
-            if flag & 0x0010: # if reverse
-                try:
-                    info_dict[chr][int(pos/BIN),2] += pos%BIN
-                    info_dict[chr][int(pos/BIN),3] += 1
-                except (IndexError, KeyError) as e:    pass
-            
+            if not flag & 0x0010: # if not reverse
+                try:  forward[chr].apend(pos)
+                except KeyError:
+                    forward[chr] = array.array('i',[pos])
             else: 
-                try:
-                    info_dict[chr][int(pos/BIN),0] += pos%BIN
-                    info_dict[chr][int(pos/BIN),1] += 1
-                except (IndexError, KeyError) as e: pass
-            try: 
-                bin_dict[chr][int(pos/BIN)] += 1
-            except (IndexError, KeyError) as e: pass # index out of range at end of chr.
-                
-                
-    return info_dict, bin_dict
-            
+                try:  reverse[chr].append(pos)
+                except KeyError:
+                    reverse[chr] = array.array('i',[pos])
+    return forward, reverse
+
+
+def cross_cor(f, r):
+    npf = numpy.array(f)
+    npr = numpy.array(r)
+    cor_list = []
+    for x in range(50,302,2):
+        #print x
+        y = len(numpy.intersect1d(npf+x,npr))
+        cor_list.append(y)
+    return range(50,302,2)[cor_list.index(max(cor_list))]
+ 
