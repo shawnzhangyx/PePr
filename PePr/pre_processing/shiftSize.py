@@ -67,14 +67,16 @@ def estimate_shiftsize(chip, parameter):
     frag_size = shift_list[len(shift_list)/2]
     ### parse the reads into bins
     for chr in parameter.chr_info:
-        for pos in forward[chr]:
-            try: bin_dict[chr][pos/BIN] += 1 
-            except IndexError:
-                pass
-        for pos in reverse[chr]:
-            try: bin_dict[chr][pos/BIN] += 1
-            except IndexError:
-                pass
+        if chr in forward:
+            for pos in forward[chr]:
+                try: bin_dict[chr][pos/BIN] += 1 
+                except IndexError:
+                    pass
+        if chr in reverse:
+            for pos in reverse[chr]:
+                try: bin_dict[chr][pos/BIN] += 1
+                except IndexError:
+                    pass
         try: bin_array = numpy.append(bin_array, bin_dict[chr])
         except UnboundLocalError:
             bin_array = bin_dict[chr]
