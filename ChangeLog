@@ -1,5 +1,5 @@
 2016-04-17 Yanxiao Zhang <yanxiazh@umich.edu>
-	* version 1.0.9 (1.0.8 skipped???)
+	* version 1.1.0
 	* A few major changes
 	* PePr now separated into three steps: (1) preprocessing (2)
 	peak-calling (3) post-processing. step 3 is no longer required.

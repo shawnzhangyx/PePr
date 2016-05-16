@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: PePr
-Version: 1.0.9
+Version: 1.1.1
 Summary: Peak-calling and Prioritization pipeline for replicated ChIP-Seq data
 Home-page: https://code.google.com/p/pepr-chip-seq/
 Author: Yanxiao Zhang

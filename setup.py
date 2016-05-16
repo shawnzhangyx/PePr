@@ -1,7 +1,7 @@
 # from distutils.core import setup
 from setuptools import setup, find_packages
 setup(name="PePr",
-      version="1.0.9",
+      version="1.1.1",
       description="Peak-calling and Prioritization pipeline for replicated ChIP-Seq data",
       author="Yanxiao Zhang",
       author_email="troublezhang@gmail.com",
@@ -21,6 +21,7 @@ setup(name="PePr",
           'numpy>=1.6.0',
           'scipy>=0.14.0',
           'pysam',
+          'sharedmem',
           ],
       entry_points={
           'console_scripts': [

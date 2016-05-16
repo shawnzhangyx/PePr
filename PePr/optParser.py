@@ -29,7 +29,7 @@ def opt_parser(argv):
     parser.add_option(
             "-f", "--file-format", action="store", type="string",
             dest="file_format",
-            help="bed, sam, bam, eland_multi, eland_extended, bowtie...",
+            help="bed, sam, bam,...",
             metavar="FORMAT")
     parser.add_option(
             "-s", "--shiftsize", action="store",
