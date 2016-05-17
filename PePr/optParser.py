@@ -73,14 +73,25 @@ def opt_parser(argv):
             "--custom_normalization", action="store",
             type="string", dest="normalization", default="scale", 
             help='''Normalization method. scale or compound''')
-    parser.add_option(
+    '''parser.add_option(
             "--no_log", action="store_true",
             dest = "unsave_log", default=False,
             help = "Disable saving the log files")
+    '''
+    parser.add_option(
+            "--version", action="store_true",
+            dest="version",default=False,
+            help="Show version information and exit")
+
     (opt, args)=parser.parse_args(argv)
     if len(argv)==1:
         parser.print_help()
         exit(1)
+    if opt.version == True:
+        from  __init__ import __version__
+        print "PePr "+ __version__
+    exit(1)
+
     return opt
 
 def process_opt(opt):
