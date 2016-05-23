@@ -127,18 +127,19 @@ def read_file_to_array(filename, parameter):
         data_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
     parse_dict = {'bed':parse_bed_for_f_r,'bam':parse_bam_for_f_r,'sam':parse_sam_for_f_r}
     forward, reverse = parse_dict[parameter.file_format](filename,parameter)
-    for chr in parameter.chr_info:
+    for chr in forward:
         forward[chr] = numpy.array(forward[chr])
+    for chr in reverse:
         reverse[chr] = numpy.array(reverse[chr])
     if parameter.keep_max_dup > 0:
         forward, reverse = remove_duplicate(forward,reverse,parameter.keep_max_dup)
-    for chr in parameter.chr_info:
+    for chr in forward:
         for pos in forward[chr]+parameter.shift_size:
             try:
                 data_dict[chr][int(pos/move_size)] += 1
             # index out of range at the end of chr.
             except (IndexError, KeyError) as e: pass 
-
+    for chr in reverse:
         for pos in reverse[chr]-parameter.shift_size+parameter.read_length_dict[filename]:
             try:
                 data_dict[chr][int(pos/move_size)] += 1
