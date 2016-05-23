@@ -50,12 +50,12 @@ def get_file_line_counts(filename, parameter):
     idx = 0
     #print filename
     if parameter.file_format == "bed":
-        with open(filename, 'r') as infile: 
+        with open(parameter.input_directory + filename, 'r') as infile: 
             for idx, line in enumerate(infile):
                 pass
             idx += 1    
     elif parameter.file_format == "sam":
-        with open(filename, 'r') as infile:
+        with open(parameter.input_directory + filename, 'r') as infile:
             for line in infile:
                 if not line.startswith('@'): #skip the header lines.
                     break
@@ -65,7 +65,7 @@ def get_file_line_counts(filename, parameter):
                 if not flag & 0x004:
                     idx += 1
     elif parameter.file_format == "bam":
-        with pysam.Samfile(filename, 'rb') as infile:
+        with pysam.Samfile(parameter.input_directory + filename, 'rb') as infile:
             for line in infile.fetch(until_eof = True):
                 if line.is_unmapped is False:
                     idx += 1

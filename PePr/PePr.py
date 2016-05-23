@@ -21,7 +21,6 @@ def argless_main():
     main(sys.argv)
 
 def main(argv):
-
     opt = optParser.opt_parser(argv)
     parameter = optParser.process_opt(opt)
     # read data and estimate the shiftsize, normalization constant

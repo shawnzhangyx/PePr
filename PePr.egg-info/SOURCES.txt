@@ -32,4 +32,6 @@ PePr/pre_processing/preProcess.py
 PePr/pre_processing/shiftSize.py
 PePr/pre_processing/shiftSize2.py
 PePr/pre_processing/windowSize.py
+PePr/utilities/__init__.py
 PePr/utilities/cal_duplication_rate.py
+PePr/utilities/find_peak_mode.py

@@ -1,3 +1,4 @@
+import os
 import logConfig
 from logging import info, debug
 
@@ -28,7 +29,8 @@ class Parameters:
         self.normalization = None
         self.input_directory = './'
         self.output_directory = './'
-        
+        self.keep_max_dup = -1
+ 
         ## dictionaries storing file related structures. 
         self.read_length_dict = {} # store the read length
         self.shift_dict = {} #store the shift sizes
@@ -49,6 +51,7 @@ class Parameters:
         else:
             self.process_command_line_option(opt)
         self.validate_parameters()
+        self.validate_files()
         logConfig.startLog(self.output_directory + self.name)
 
         # --- initialize logging --- #
@@ -97,6 +100,8 @@ class Parameters:
                 self.redundant = value[0]
             if key == "threshold":
                 self.threshold = float(value[0])
+            if key == "keep_max_dup":
+                self.keep_max_dup = int(value[0])
             if key == "normalization":
                 self.normalization = value[0].lower()
             if key == "num_processors":
@@ -120,6 +125,7 @@ class Parameters:
         self.threshold = opt.threshold
         self.peaktype = opt.peaktype.lower()
         self.normalization = opt.normalization
+        self.keep_max_dup = opt.keep_max_dup
         self.input_directory = opt.input_directory
         self.output_directory = opt.output_directory
         self.num_procs = opt.num_procs
@@ -153,7 +159,7 @@ class Parameters:
                 'bed', 'sam', 'bam'
                 ]:
             raise Exception('''Please specify a valid file format: bed,
-            eland_multi, eland_extended, bowtie, sam, or bam''')
+            sam, or bam''')
         if self.peaktype not in ['sharp', 'broad']:
             raise Exception('''please specify a peak type: sharp or broad.
             Typically, sharp works for TF better and broad
@@ -181,7 +187,12 @@ class Parameters:
         if not self.output_directory.endswith('/'):
             self.output_directory += '/'
         # can change relative directory to absolute directory. 
-        
+
+    def validate_files(self):
+        for filename in self.get_filenames():
+            if os.path.isfile(self.input_directory+filename) is False:
+                print "File:",self.input_directory+filename, " not found"
+                exit(1)
     def write_parameter_to_file(self):
         '''write the current parameters to the files so user can repeat the analysis'''
         # check if the file name has already be taken. 
@@ -197,6 +208,8 @@ class Parameters:
         output_str += 'difftest\t'+str(self.difftest)+'\n'
         output_str += 'threshold\t'+str(self.threshold)+'\n'
         output_str += 'normalization\t'+self.normalization+'\n'
+        if self.keep_max_dup > 0:
+            output_str +='keep_max_dup\t'+str(self.keep_max_dup)+'\n'
         output_str += 'input_directory\t'+self.input_directory+'\n'
         output_str += 'output_directory\t'+self.output_directory+'\n'
         output_str += 'name\t'+self.name+'\n'

@@ -28,7 +28,7 @@ def opt_parser(argv):
             metavar="INPUT2")
     parser.add_option(
             "-f", "--file-format", action="store", type="string",
-            dest="file_format",
+            dest="file_format",default="NA",
             help="bed, sam, bam,...",
             metavar="FORMAT")
     parser.add_option(
@@ -70,9 +70,14 @@ def opt_parser(argv):
             type="string", dest="output_directory", default='./',
             help="where you want the output files to be")
     parser.add_option(
-            "--custom_normalization", action="store",
+            "--custom-normalization", action="store",
             type="string", dest="normalization", default="scale", 
             help='''Normalization method. scale or compound''')
+    parser.add_option(
+            "--keep-max-dup", action="store",
+            type="int", dest="keep_max_dup", default=-1,
+            help='''maximum number of duplicated reads to keep
+            if not specified, will not remove any duplicate.''')
     '''parser.add_option(
             "--no_log", action="store_true",
             dest = "unsave_log", default=False,
@@ -90,7 +95,7 @@ def opt_parser(argv):
     if opt.version == True:
         from  __init__ import __version__
         print "PePr "+ __version__
-    exit(1)
+        exit(1)
 
     return opt
 

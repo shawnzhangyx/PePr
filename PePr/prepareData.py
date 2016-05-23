@@ -3,6 +3,7 @@ from logging import info
 import pysam
 import multiprocessing
 import itertools 
+from pre_processing.shiftSize import parse_bed_for_f_r,parse_bam_for_f_r,parse_sam_for_f_r
 
 def read_bam(filename, data_dict, parameter):
     shift_size = parameter.shift_dict[filename]
@@ -79,7 +80,43 @@ def read_bed(filename, data_dict, parameter):
         except (IndexError, KeyError) as e:    pass
         
     return data_dict
+
+def remove_duplicate(forward, reverse, max):
+    for chr in set(forward.keys())&set(reverse.keys()):
+        forward_chr = forward[chr]
+        forward_chr.sort()
+        idx_keep = numpy.zeros(forward_chr.size)
+        pos_pre = 0
+        count = 1
+        for idx,pos in enumerate(forward_chr):
+            if pos == pos_pre:
+                count += 1
+                if count > max:
+                    idx_keep[idx] = count 
+            else:
+                count = 1
+                pos_pre = pos
+        forward[chr] = forward_chr[numpy.where(idx_keep==0)]
+        # do the same for the reverse strand. 
+        reverse_chr = reverse[chr]
+        reverse_chr.sort()
+        idx_keep = numpy.zeros(reverse_chr.size)
+        pos_pre = 0
+        count = 1
+        for idx,pos in enumerate(reverse_chr):
+            if pos == pos_pre:
+                count += 1
+                if count > max:
+                    idx_keep[idx] = count
+            else:
+                count = 1
+                pos_pre = pos
+        reverse[chr] = reverse_chr[numpy.where(idx_keep==0)]
+        #print "before removing:",chr,str(len(forward_chr))
+        #print "after:", chr, str(len(forward[chr]))
+    return forward, reverse
         
+
 def read_file_to_array(filename, parameter):
     ''' read file into arrays that can be used on significance testing. '''
     info ("processing %s", filename)
@@ -88,13 +125,24 @@ def read_file_to_array(filename, parameter):
     for chr in parameter.chr_info:
         row_num = int(parameter.chr_info[chr]/move_size) - 1
         data_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
-    
-    if parameter.file_format == "bed":
-        data_dict = read_bed(filename, data_dict, parameter)
-    elif parameter.file_format == "bam":
-        data_dict = read_bam(filename, data_dict, parameter)
-    elif parameter.file_format == "sam":
-        data_dict = read_sam(filename, data_dict, parameter)
+    parse_dict = {'bed':parse_bed_for_f_r,'bam':parse_bam_for_f_r,'sam':parse_sam_for_f_r}
+    forward, reverse = parse_dict[parameter.file_format](filename,parameter)
+    for chr in parameter.chr_info:
+        forward[chr] = numpy.array(forward[chr])
+        reverse[chr] = numpy.array(reverse[chr])
+    if parameter.keep_max_dup > 0:
+        forward, reverse = remove_duplicate(forward,reverse,parameter.keep_max_dup)
+    for chr in parameter.chr_info:
+        for pos in forward[chr]+parameter.shift_size:
+            try:
+                data_dict[chr][int(pos/move_size)] += 1
+            # index out of range at the end of chr.
+            except (IndexError, KeyError) as e: pass 
+
+        for pos in reverse[chr]-parameter.shift_size+parameter.read_length_dict[filename]:
+            try:
+                data_dict[chr][int(pos/move_size)] += 1
+            except (IndexError, KeyError) as e: pass 
         
     for chr in parameter.chr_info: 
         data_dict[chr] = data_dict[chr] + numpy.roll(data_dict[chr],-1)
