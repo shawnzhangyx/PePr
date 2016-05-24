@@ -3,7 +3,12 @@ from classDef import Parameters
 
 
 def opt_parser(argv):
-    parser = OptionParser()
+    usage = ["Basic usage: %prog -c chip_files -i input_files -f file_type",
+             "You could also use a parameter file by: %prog -p param_file",
+             "For pre-processing only (parameter estimation), run: PePr-preprocess",
+             "For post-processing, run: PePr-postprocess"]
+    usage = '\n'.join(usage)
+    parser = OptionParser(usage=usage)
     parser.add_option(
             "-p", "--parameter-file", action="store", type="string",
             dest="parameter", default="",

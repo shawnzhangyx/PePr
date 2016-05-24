@@ -1,3 +1,5 @@
+###### you can use this script to estimate shift size for each sample.
+# example: python estimate_shiftSize.py file_format filename
 import sys
 from shiftSize import estimate_shiftsize
 from initialize import get_chromosome_info

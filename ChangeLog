@@ -1,3 +1,9 @@
+2016-05-24 Yanxiao Zhang <yanxiazh@umich.edu>
+	* version 1.1.6
+	* added back the post-processing module
+	* make preprocessing and postprocessing modules separate console commands.
+	* added back fileParser.py to facilitate parser function reuse. 
+
 2016-05-23 Yanxiao Zhang <yanxiazh@umich.edu>
 	* version 1.1.5
 	* added back 'removing duplicates'

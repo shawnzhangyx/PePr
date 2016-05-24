@@ -13,14 +13,27 @@ import optParser
 from pre_processing import initialize
 import prepareData
 import sigTests
+from post_processing import post_process_PePr
 
+def post_processing_module():
+    '''setuptools entry_points'''
+    post_process_PePr.main(sys.argv)
 
+def pre_processing_module():
+    opt = optParser.opt_parser(sys.argv)
+    parameter = optParser.process_opt(opt)
+    # read data and estimate the shiftsize, normalization constant
+    initialize.preprocess(parameter)
+    parameter.write_parameter_to_file()
 
 def argless_main():
     '''setuptools entry_points take no arguments, wrap main instead'''
     main(sys.argv)
 
 def main(argv):
+    '''PePr main function. Including preprocing and peak calling. 
+    No post-processing'''
+
     opt = optParser.opt_parser(argv)
     parameter = optParser.process_opt(opt)
     # read data and estimate the shiftsize, normalization constant

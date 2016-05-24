@@ -22,6 +22,7 @@ PePr/data/example_command
 PePr/data/input_rep1.bed
 PePr/data/input_rep2.bed
 PePr/data/test__PePr_peaks.bed
+PePr/post_processing/__init__.py
 PePr/post_processing/post_process_PePr.py
 PePr/pre_processing/__init__.py
 PePr/pre_processing/cal_normalization.py
@@ -30,7 +31,6 @@ PePr/pre_processing/fileParser.py
 PePr/pre_processing/initialize.py
 PePr/pre_processing/preProcess.py
 PePr/pre_processing/shiftSize.py
-PePr/pre_processing/shiftSize2.py
 PePr/pre_processing/windowSize.py
 PePr/utilities/__init__.py
 PePr/utilities/cal_duplication_rate.py

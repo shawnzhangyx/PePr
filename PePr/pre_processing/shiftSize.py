@@ -7,6 +7,7 @@ import itertools
 import pysam 
 import array
 
+from fileParser import parse_file_by_strand
 
 BIN = 10000
 
@@ -56,9 +57,8 @@ def estimate_shiftsize(chip, parameter):
         row_num = int(parameter.chr_info[chr]/BIN) 
         bin_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
         info_dict[chr] = numpy.zeros((row_num,4),dtype=numpy.int64)
-    # parsing dictionary
-    parse_dict = {'bed':parse_bed_for_f_r,'bam':parse_bam_for_f_r,'sam':parse_sam_for_f_r}    
-    forward, reverse = parse_dict[parameter.file_format](chip, parameter)
+    # parsing file into strand 
+    forward, reverse = parse_file_by_strand[parameter.file_format](chip, parameter)
     shift_list =[]
     for chr in parameter.get_top3_chr():
         chr_f,chr_r = forward[chr],reverse[chr]

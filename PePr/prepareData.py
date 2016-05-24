@@ -3,7 +3,8 @@ from logging import info
 import pysam
 import multiprocessing
 import itertools 
-from pre_processing.shiftSize import parse_bed_for_f_r,parse_bam_for_f_r,parse_sam_for_f_r
+#from pre_processing.shiftSize import parse_bed_for_f_r,parse_bam_for_f_r,parse_sam_for_f_r
+from pre_processing.fileParser import parse_file_by_strand
 
 def read_bam(filename, data_dict, parameter):
     shift_size = parameter.shift_dict[filename]
@@ -125,8 +126,7 @@ def read_file_to_array(filename, parameter):
     for chr in parameter.chr_info:
         row_num = int(parameter.chr_info[chr]/move_size) - 1
         data_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
-    parse_dict = {'bed':parse_bed_for_f_r,'bam':parse_bam_for_f_r,'sam':parse_sam_for_f_r}
-    forward, reverse = parse_dict[parameter.file_format](filename,parameter)
+    forward, reverse = parse_file_by_strand[parameter.file_format](filename,parameter)
     for chr in forward:
         forward[chr] = numpy.array(forward[chr])
     for chr in reverse:

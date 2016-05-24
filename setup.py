@@ -29,6 +29,8 @@ setup(name="PePr",
       entry_points={
           'console_scripts': [
               'PePr=PePr.PePr:argless_main',
+              'PePr-preprocess=PePr.PePr:pre_processing_module',
+              'PePr-postprocess=PePr.PePr:post_processing_module',
               ]
           }
       )
