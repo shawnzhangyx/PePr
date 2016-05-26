@@ -235,6 +235,9 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
             overlap_orig, overlap_roll)
 
 
+def post_processing_module():
+    '''setuptools entry_points'''
+    main(sys.argv)
 
 if __name__ == '__main__':
     try: main(sys.argv)

@@ -9,7 +9,7 @@ import array
 
 from fileParser import parse_file_by_strand
 
-BIN = 10000
+BIN = 1000
 
 def estimate_shiftsizes(parameter):
     ''' the root function for estimating the shiftsizes'''

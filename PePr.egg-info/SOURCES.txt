@@ -15,12 +15,12 @@ PePr.egg-info/dependency_links.txt
 PePr.egg-info/entry_points.txt
 PePr.egg-info/requires.txt
 PePr.egg-info/top_level.txt
-PePr/data/NA__PePr_peaks.bed
 PePr/data/chip_rep1.bed
 PePr/data/chip_rep2.bed
 PePr/data/example_command
 PePr/data/input_rep1.bed
 PePr/data/input_rep2.bed
+PePr/data/my_test_run__PePr_peaks.bed
 PePr/data/test__PePr_peaks.bed
 PePr/post_processing/__init__.py
 PePr/post_processing/post_process_PePr.py
@@ -34,4 +34,5 @@ PePr/pre_processing/shiftSize.py
 PePr/pre_processing/windowSize.py
 PePr/utilities/__init__.py
 PePr/utilities/cal_duplication_rate.py
+PePr/utilities/cal_max_duplicates_to_keep.py
 PePr/utilities/find_peak_mode.py

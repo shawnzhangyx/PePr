@@ -13,11 +13,7 @@ import optParser
 from pre_processing import initialize
 import prepareData
 import sigTests
-from post_processing import post_process_PePr
 
-def post_processing_module():
-    '''setuptools entry_points'''
-    post_process_PePr.main(sys.argv)
 
 def pre_processing_module():
     opt = optParser.opt_parser(sys.argv)

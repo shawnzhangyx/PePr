@@ -22,13 +22,13 @@ class Parameters:
         self.file_format = None
         self.shift_size = -1
         self.window_size = -1
-        self.difftest = None
+        self.difftest = False 
         self.name = None
         self.threshold = None
         self.peaktype = None
-        self.normalization = None
-        self.input_directory = './'
-        self.output_directory = './'
+        self.normalization = '' 
+        self.input_directory = ''
+        self.output_directory = ''
         self.keep_max_dup = -1
  
         ## dictionaries storing file related structures. 
@@ -71,45 +71,45 @@ class Parameters:
             
             if key == "chip1":
                 self.chip1.append(value[0])
-            if key == "chip2":
+            elif key == "chip2":
                 self.chip2.append(value[0])
-            if key == "input1":
+            elif key == "input1":
                 self.input1.append(value[0])
-            if key == "input2":
+            elif key == "input2":
                 self.input2.append(value[0])
             # read the shift size and normalization constants. 
-            if key in ['chip1','chip2','input1','input2']:
+            elif key in ['chip1','chip2','input1','input2']:
                 if len(value) > 1: 
                     self.shift_dict[value[0]] = int(value[1])
                 if len(value) > 2:
                     self.normalization_dict[value[0]] = float(value[2])
                     
-            if key == "file_format":
+            elif key == "file_format":
                 self.file_format = value[0].lower()
-            if key == "shiftsize":
+            elif key == "shiftsize":
                 self.shift_size = int(value[0])
-            if key == "windowsize":
+            elif key == "windowsize":
                 self.window_size = int(value[0])
-            if key == "peaktype":
+            elif key == "peaktype":
                 self.peaktype = value[0].lower()
-            if key == "difftest":
+            elif key == "difftest":
                 self.difftest = value[0].lower() == "true"
-            if key == "name":
+            elif key == "name":
                 self.name = value[0]
-            if key == "remove_redup":
-                self.redundant = value[0]
-            if key == "threshold":
+            elif key == "threshold":
                 self.threshold = float(value[0])
-            if key == "keep_max_dup":
+            elif key == "keep_max_dup":
                 self.keep_max_dup = int(value[0])
-            if key == "normalization":
+            elif key == "normalization":
                 self.normalization = value[0].lower()
-            if key == "num_processors":
+            elif key == "num_processors":
                 self.num_procs = int(value[0])
-            if key == "input_directory":
+            elif key == "input_directory":
                 self.input_directory = value[0]
-            if key == "output_directory":
+            elif key == "output_directory":
                 self.output_directory = value[0]                
+            else:
+                raise Exception("Incorrect or unknown parameter: {0}".format(line))
         return 
         
     def process_command_line_option(self, opt):
@@ -164,10 +164,14 @@ class Parameters:
             raise Exception('''please specify a peak type: sharp or broad.
             Typically, sharp works for TF better and broad
             for histone modifications.''')
-        
-        if  len(self.normalization_dict) == 0 and self.normalization not in ['scale','compound','none']:
-            raise Exception('''Please specify a normalization method: scale, compound, none. 
-            Or give normalization constants.''')
+       
+        ## check normalization
+        # if normalization constants not provided
+        if  len(self.normalization_dict) == 0:
+            if self.difftest is False and self.normalization =='':
+                self.normalization = "intra-group"
+            if self.normalization not in ['inter-group','intra-group','none']:
+                raise Exception('''Please specify a normalization method: inter-group, intra-group, or scale. put 'no' if you don't want to normalize''')
             
         if self.difftest is True:
             if len(self.chip1) == \
@@ -182,13 +186,26 @@ class Parameters:
                 self.chip2_matched_input = False
         
         # add '/' to the end of directories if not. 
-        if not self.input_directory.endswith('/'):
-            self.input_directory += '/'
-        if not self.output_directory.endswith('/'):
+        # no '/' at beginning of filenames if input directory is present.
+        if self.input_directory != '':
+            for filename in self.get_filenames():
+                if filename.startswith('/'):
+                    raise Exception('If input directory is specified, absolute path("/") in file name is invalid')
+            if not self.input_directory.endswith('/'):
+                self.input_directory += '/'
+        if self.output_directory != '' and \
+                not self.output_directory.endswith('/'):
             self.output_directory += '/'
+
         # can change relative directory to absolute directory. 
 
     def validate_files(self):
+        if self.input_directory != '':
+            if os.path.isdir(self.input_directory) is False:
+                raise Exception('Input directory: {0} does not exist'.format(self.input_directory))
+        if self.output_directory != '':
+            if os.path.isdir(self.output_directory) is False:
+                raise Exception('Output directory: {0} does not exist'.format(self.output_directory))
         for filename in self.get_filenames():
             if os.path.isfile(self.input_directory+filename) is False:
                 print "File:",self.input_directory+filename, " not found"
@@ -210,8 +227,10 @@ class Parameters:
         output_str += 'normalization\t'+self.normalization+'\n'
         if self.keep_max_dup > 0:
             output_str +='keep_max_dup\t'+str(self.keep_max_dup)+'\n'
-        output_str += 'input_directory\t'+self.input_directory+'\n'
-        output_str += 'output_directory\t'+self.output_directory+'\n'
+        if self.input_directory != '':
+            output_str += 'input_directory\t'+self.input_directory+'\n'
+        if self.output_directory !='':
+            output_str += 'output_directory\t'+self.output_directory+'\n'
         output_str += 'name\t'+self.name+'\n'
         output_str += 'num_processors\t'+str(self.num_procs)+'\n'
         #print and save the parameters into a file. 
@@ -236,6 +255,9 @@ class Parameters:
     
     def get_chip_filenames(self):
         return self.chip1+self.chip2
+
+    def get_input_filenames(self):
+        return self.input1+self.input2
         
     def get_genome_size(self):
         return sum(self.chr_info.values())

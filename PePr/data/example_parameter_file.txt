@@ -10,7 +10,6 @@ windowsize     200
 difftest     FALSE
 remove_dup     FALSE  ## can use external software
 threshold     1e-5
-normalization     SCALE
 input directory     ./
 output directory     ./
 name    test

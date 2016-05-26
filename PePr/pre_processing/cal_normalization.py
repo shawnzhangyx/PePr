@@ -7,15 +7,23 @@ import multiprocessing
 import itertools
 
 
-BIN = 10000 # bin size for normalization purposes. 
+BIN = 1000 # bin size for normalization purposes. 
 
 def cal_normalization_constant(parameter):
     info ("calculating normalization constants")
     if parameter.normalization == "scale":
         scale(parameter)
-    elif parameter.normalization == "compound":
-        compound(parameter)
-    
+    elif parameter.normalization == "intra-group":
+        within_group_tmm(parameter)
+    elif parameter.normalization == "inter-group":
+        between_group_tmm(parameter)
+    else: #no normalization
+        no_normalization(parameter)
+
+def no_normalization(parameter):
+    for filename in parameter.get_filenames():
+        parameter.normalization_dict[filename] = 1.0
+    return
 
 def scale(parameter):
     ''' scale the libaries so the total number of reads are the same'''
@@ -72,9 +80,10 @@ def get_file_line_counts(filename, parameter):
                     
     return idx
         
-### will need to work on the compound normalization later. 
-def compound(parameter):
-    '''compound normalization '''
+
+### within-group normalization.  
+def within_group_tmm(parameter):
+    '''within_group normalization '''
     # process the reads into bins. 
     bin_dict = parameter.bin_dict 
     bin_size = BIN
@@ -136,6 +145,45 @@ def compound(parameter):
 
     return
 
+def between_group_tmm(parameter):
+    '''between group tmm method'''
+    # process the reads into bins.
+    bin_dict = parameter.bin_dict
+    bin_size = BIN
+
+    if parameter.num_procs < 2:
+        for filename in parameter.get_filenames_wo_bin_dict():
+            bin_dict[filename] = parse_to_bin(filename, bin_size, parameter)
+    else:
+        pool = multiprocessing.Pool(parameter.num_procs)
+        p = pool.map_async(parse_to_bin_wrapper, itertools.izip(parameter.get_filenames_wo_bin_dict(), itertools.repeat(bin_size), itertools.repeat(parameter)),1)
+        try: results = p.get()
+        except KeyboardInterrupt:
+            exit(1)
+
+        for filename, array in itertools.izip(parameter.get_filenames_wo_bin_dict(), results):
+            parameter.bin_dict[filename] = array
+
+    # process chip array
+    for chip in parameter.get_chip_filenames():
+        try:
+            chip_array_mixed = chip_array_mixed + bin_dict[chip]
+            chip_rep_rank_sum += rankdata(-bin_dict[chip])
+        except UnboundLocalError:
+            chip_array_mixed = bin_dict[chip].copy()
+            chip_rep_rank_sum = rankdata(-bin_dict[chip])
+
+    chip_array_mixed /= len(parameter.get_chip_filenames())
+
+    for chip in parameter.get_chip_filenames():
+        parameter.normalization_dict[chip] = chip_tmm(chip_array_mixed, bin_dict[chip], chip_rep_rank_sum)
+
+    if len(parameter.get_input_filenames()) > 0:
+        for input in parameter.get_input_filenames():
+            parameter.normalization_dict[input] = input_ncis(chip_array_mixed, bin_dict[input])
+
+    return
+
     
     
 def chip_tmm(ref, target, rep_rank_sum): 
@@ -147,12 +195,17 @@ def chip_tmm(ref, target, rep_rank_sum):
     order = numpy.argsort(rep_rank_sum)
 #    order = numpy.argsort(-ref)
     len_target_not_zero = len(numpy.where(target > 0)[0])
+    print len_target_not_zero
     ref = ref[order]
     target = target[order]
     tmm_array = numpy.array([])
-    for n in N_PEAKS_GRID: 
-        if n > len_target_not_zero: 
-            break
+    for idx,n in enumerate(N_PEAKS_GRID):
+        if n > len_target_not_zero:
+            if idx == 0:
+                # if the non-zero list is smaller than 1000
+                n = len_target_not_zero
+            else:
+                break
         ref_n = ref[range(n)]
         ref_n[ref_n==0] = 1
         target_n = target[range(n)]
@@ -179,6 +232,7 @@ def chip_tmm(ref, target, rep_rank_sum):
         #debug("The TMM estiamted from top %s windows is %s", n, tmm)
     library_ratio = numpy.sum(ref)/numpy.sum(target)
     tmm_diff_array = numpy.abs(tmm_array - library_ratio)
+    print tmm_array, tmm_diff_array
     tmm_max = tmm_array[numpy.argmax(tmm_diff_array)]
     return tmm_max
 

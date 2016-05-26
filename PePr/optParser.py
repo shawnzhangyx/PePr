@@ -65,19 +65,19 @@ def opt_parser(argv):
     parser.add_option(
             "--num-processors", action="store",
             type="int", dest="num_procs", default =1,
-            help="number of CPUs use on it.")
+            help="number of cores for use.")
     parser.add_option(
             "--input-directory", action="store",
-            type="string", dest="input_directory", default='./',
-            help="where the data files are")
+            type="string", dest="input_directory", default='',
+            help="where the data files are. Absolute path recommended.")
     parser.add_option(
             "--output-directory", action="store",
-            type="string", dest="output_directory", default='./',
+            type="string", dest="output_directory", default='',
             help="where you want the output files to be")
     parser.add_option(
-            "--custom-normalization", action="store",
-            type="string", dest="normalization", default="scale", 
-            help='''Normalization method. scale or compound''')
+            "--normalization", action="store",
+            type="string", dest="normalization", default="", 
+            help='''Normalization method. inter-group, intra-group, scale or no. Must manually specify for differential binding analysis.''')
     parser.add_option(
             "--keep-max-dup", action="store",
             type="int", dest="keep_max_dup", default=-1,
