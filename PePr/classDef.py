@@ -1,6 +1,8 @@
 import os
 import logConfig
-from logging import info, debug
+from logging import info, debug, warning
+import collections
+import pysam
 
 ## global variable read_dict
 read_dict = {}
@@ -53,6 +55,7 @@ class Parameters:
         self.validate_parameters()
         self.validate_files()
         logConfig.startLog(self.output_directory + self.name)
+        self.check_file_formats()
 
         # --- initialize logging --- #
 
@@ -210,6 +213,62 @@ class Parameters:
             if os.path.isfile(self.input_directory+filename) is False:
                 print "File:",self.input_directory+filename, " not found"
                 exit(1)
+
+    @staticmethod
+    def check_sampe_sorted(filename, input_dir):
+        with open(input_dir + filename,'r') as infile:
+            for line in infile:
+                if not line.startswith("@"):
+                    break
+            count_list = []
+            count = 1
+            pre_name = ''
+            for idx,line in enumerate(infile): 
+                name = line.strip().split()[0]
+                if name == pre_name:
+                    count += 1
+                else: 
+                    count_list.append(count)
+                    count = 1
+                    pre_name = name
+                if idx == 999:
+                    break
+
+        count1 = len([i for i in count_list if i==1])
+        ratio = float(count1)/sum(count_list)
+        #print filename, ratio
+        if ratio > 0.8:
+            warning("%s may not be sorted by read name. Please check.",filename)
+
+    @staticmethod
+    def check_bampe_sorted(filename, input_dir):
+        infile = pysam.Samfile(input_dir + filename, 'rb')
+        count_list = []
+        count = 1
+        pre_name = ''
+        for idx,line in enumerate(infile.fetch(until_eof = True)):
+            if line.query_name == pre_name:
+                count += 1
+            else:
+                count_list.append(count)
+                count = 1
+                pre_name = line.query_name
+            if idx == 999:
+                break
+
+        count1 = len([i for i in count_list if i==1])
+        ratio = float(count1)/sum(count_list)
+        #print filename, ratio
+        if ratio > 0.8:
+            warning("%s may not be sorted by read name. Please check.",filename)
+
+    def check_file_formats(self):
+        check_name_sorted = {'sampe':self.check_sampe_sorted, 'bampe':self.check_bampe_sorted}
+        if self.file_format in ['sampe', 'bampe']:
+            for filename in self.get_filenames():
+                check_name_sorted[self.file_format](filename, self.input_directory)
+        
+
     def write_parameter_to_file(self):
         '''write the current parameters to the files so user can repeat the analysis'''
         # check if the file name has already be taken. 
