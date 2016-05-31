@@ -1,5 +1,5 @@
-# from distutils.core import setup
-from setuptools import setup, find_packages
+#from distutils.core import setup
+from setuptools import find_packages, setup
 from PePr import __version__
 setup(name="PePr",
       version=__version__, # change the version info in the PePr.__init__ file

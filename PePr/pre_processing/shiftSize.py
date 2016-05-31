@@ -58,7 +58,7 @@ def estimate_shiftsize(chip, parameter):
         bin_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
         info_dict[chr] = numpy.zeros((row_num,4),dtype=numpy.int64)
     # parsing file into strand 
-    forward, reverse = parse_file_by_strand[parameter.file_format](chip, parameter)
+    forward, reverse = parse_file_by_strand[parameter.file_format](chip, parameter.input_directory)
     shift_list =[]
     for chr in parameter.get_top3_chr():
         chr_f,chr_r = forward[chr],reverse[chr]

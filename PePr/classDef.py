@@ -84,7 +84,7 @@ class Parameters:
                 if len(value) > 2:
                     self.normalization_dict[value[0]] = float(value[2])
                     
-            elif key == "file_format":
+            elif key == "file-format":
                 self.file_format = value[0].lower()
             elif key == "shiftsize":
                 self.shift_size = int(value[0])
@@ -98,15 +98,15 @@ class Parameters:
                 self.name = value[0]
             elif key == "threshold":
                 self.threshold = float(value[0])
-            elif key == "keep_max_dup":
+            elif key == "keep-max-dup":
                 self.keep_max_dup = int(value[0])
             elif key == "normalization":
                 self.normalization = value[0].lower()
-            elif key == "num_processors":
+            elif key == "num-processors":
                 self.num_procs = int(value[0])
-            elif key == "input_directory":
+            elif key == "input-directory":
                 self.input_directory = value[0]
-            elif key == "output_directory":
+            elif key == "output-directory":
                 self.output_directory = value[0]                
             else:
                 raise Exception("Incorrect or unknown parameter: {0}".format(line))
@@ -154,12 +154,12 @@ class Parameters:
                 analysis''')
         if not self.file_format:
             raise Exception('''Please specify a file format:  bed,
-                sam, or bam''')
+                sam, bam, sampe or bampe''')
         if self.file_format not in [
-                'bed', 'sam', 'bam'
+                'bed', 'sam', 'bam', 'sampe', 'bampe'
                 ]:
             raise Exception('''Please specify a valid file format: bed,
-            sam, or bam''')
+            sam, bam, sampe or bampe''')
         if self.peaktype not in ['sharp', 'broad']:
             raise Exception('''please specify a peak type: sharp or broad.
             Typically, sharp works for TF better and broad
@@ -219,20 +219,20 @@ class Parameters:
         for filename,filetype in zip(self.get_filenames(), self.get_filetypes()):
             output_str += '\t'.join([filetype,filename,str(self.shift_dict[filename]), str(self.normalization_dict[filename])]) +'\n'
                 
-        output_str += 'file_format\t'+self.file_format+'\n'
+        output_str += 'file-format\t'+self.file_format+'\n'
         output_str += 'peaktype\t'+self.peaktype+'\n'
         output_str += 'windowsize\t'+str(self.window_size)+'\n'
         output_str += 'difftest\t'+str(self.difftest)+'\n'
         output_str += 'threshold\t'+str(self.threshold)+'\n'
         output_str += 'normalization\t'+self.normalization+'\n'
         if self.keep_max_dup > 0:
-            output_str +='keep_max_dup\t'+str(self.keep_max_dup)+'\n'
+            output_str +='keep-max-dup\t'+str(self.keep_max_dup)+'\n'
         if self.input_directory != '':
-            output_str += 'input_directory\t'+self.input_directory+'\n'
+            output_str += 'input-directory\t'+self.input_directory+'\n'
         if self.output_directory !='':
-            output_str += 'output_directory\t'+self.output_directory+'\n'
+            output_str += 'output-directory\t'+self.output_directory+'\n'
         output_str += 'name\t'+self.name+'\n'
-        output_str += 'num_processors\t'+str(self.num_procs)+'\n'
+        output_str += 'num-processors\t'+str(self.num_procs)+'\n'
         #print and save the parameters into a file. 
         self.print_parameters(output_str)
         with open(self.output_directory + self.name+"__PePr_parameters.txt", 'w') as outfile:

@@ -4,7 +4,7 @@ import pysam
 import multiprocessing
 import itertools 
 #from pre_processing.shiftSize import parse_bed_for_f_r,parse_bam_for_f_r,parse_sam_for_f_r
-from pre_processing.fileParser import parse_file_by_strand
+from pre_processing.fileParser import parse_file_by_strand, parse_file_pe
 
 def read_bam(filename, data_dict, parameter):
     shift_size = parameter.shift_dict[filename]
@@ -82,14 +82,14 @@ def read_bed(filename, data_dict, parameter):
         
     return data_dict
 
-def remove_duplicate(forward, reverse, max):
-    for chr in set(forward.keys())&set(reverse.keys()):
-        forward_chr = forward[chr]
-        forward_chr.sort()
-        idx_keep = numpy.zeros(forward_chr.size)
+def remove_duplicate(fragments, max):
+    for chr in fragments:
+        fragment_chr = fragments[chr]
+        fragment_chr.sort()
+        idx_keep = numpy.zeros(fragment_chr.size)
         pos_pre = 0
         count = 1
-        for idx,pos in enumerate(forward_chr):
+        for idx,pos in enumerate(fragment_chr):
             if pos == pos_pre:
                 count += 1
                 if count > max:
@@ -97,25 +97,8 @@ def remove_duplicate(forward, reverse, max):
             else:
                 count = 1
                 pos_pre = pos
-        forward[chr] = forward_chr[numpy.where(idx_keep==0)]
-        # do the same for the reverse strand. 
-        reverse_chr = reverse[chr]
-        reverse_chr.sort()
-        idx_keep = numpy.zeros(reverse_chr.size)
-        pos_pre = 0
-        count = 1
-        for idx,pos in enumerate(reverse_chr):
-            if pos == pos_pre:
-                count += 1
-                if count > max:
-                    idx_keep[idx] = count
-            else:
-                count = 1
-                pos_pre = pos
-        reverse[chr] = reverse_chr[numpy.where(idx_keep==0)]
-        #print "before removing:",chr,str(len(forward_chr))
-        #print "after:", chr, str(len(forward[chr]))
-    return forward, reverse
+        fragments[chr] = fragment_chr[numpy.where(idx_keep==0)]
+    return fragments 
         
 
 def read_file_to_array(filename, parameter):
@@ -126,24 +109,25 @@ def read_file_to_array(filename, parameter):
     for chr in parameter.chr_info:
         row_num = int(parameter.chr_info[chr]/move_size) - 1
         data_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
-    forward, reverse = parse_file_by_strand[parameter.file_format](filename,parameter)
-    for chr in forward:
-        forward[chr] = numpy.array(forward[chr])
-    for chr in reverse:
-        reverse[chr] = numpy.array(reverse[chr])
-    if parameter.keep_max_dup > 0:
-        forward, reverse = remove_duplicate(forward,reverse,parameter.keep_max_dup)
-    for chr in forward:
-        for pos in forward[chr]+parameter.shift_size:
-            try:
-                data_dict[chr][int(pos/move_size)] += 1
-            # index out of range at the end of chr.
-            except (IndexError, KeyError) as e: pass 
-    for chr in reverse:
-        for pos in reverse[chr]-parameter.shift_size+parameter.read_length_dict[filename]:
-            try:
-                data_dict[chr][int(pos/move_size)] += 1
-            except (IndexError, KeyError) as e: pass 
+    if parameter.file_format.endswith('pe'):
+        fragments_list = [parse_file_pe[parameter.file_format](filename,parameter.input_directory)]
+    else:
+        forward, reverse = parse_file_by_strand[parameter.file_format](filename,parameter.input_directory)
+        for chr in forward:
+            forward[chr] = numpy.array(forward[chr]) + parameter.shift_dict[filename] 
+        for chr in reverse:
+            reverse[chr] = numpy.array(reverse[chr]) - parameter.shift_dict[filename] + parameter.read_length_dict[filename]
+        fragments_list = [forward, reverse]
+ 
+    for fragments in fragments_list: 
+        if parameter.keep_max_dup > 0:
+            fragments = remove_duplicate(fragments,parameter.keep_max_dup)
+        for chr in fragments:
+            for pos in fragments[chr]:
+                try:
+                    data_dict[chr][int(pos/move_size)] += 1
+                # index out of range at the end of chr.
+                except (IndexError, KeyError) as e: pass 
         
     for chr in parameter.chr_info: 
         data_dict[chr] = data_dict[chr] + numpy.roll(data_dict[chr],-1)

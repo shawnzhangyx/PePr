@@ -34,7 +34,7 @@ def opt_parser(argv):
     parser.add_option(
             "-f", "--file-format", action="store", type="string",
             dest="file_format",default="NA",
-            help="bed, sam, bam,...",
+            help="bed, sam, bam, sampe, bampe...",
             metavar="FORMAT")
     parser.add_option(
             "-s", "--shiftsize", action="store",

@@ -1,5 +1,6 @@
 from logging import info
 from logging import debug
+import array
 import pysam 
 import numpy
 from scipy.stats import rankdata
@@ -62,7 +63,7 @@ def get_file_line_counts(filename, parameter):
             for idx, line in enumerate(infile):
                 pass
             idx += 1    
-    elif parameter.file_format == "sam":
+    elif parameter.file_format in ["sam","sampe"]:
         with open(parameter.input_directory + filename, 'r') as infile:
             for line in infile:
                 if not line.startswith('@'): #skip the header lines.
@@ -72,7 +73,7 @@ def get_file_line_counts(filename, parameter):
                 flag = int(words[1])
                 if not flag & 0x004:
                     idx += 1
-    elif parameter.file_format == "bam":
+    elif parameter.file_format == ["bam","bampe"]:
         with pysam.Samfile(parameter.input_directory + filename, 'rb') as infile:
             for line in infile.fetch(until_eof = True):
                 if line.is_unmapped is False:
@@ -195,7 +196,7 @@ def chip_tmm(ref, target, rep_rank_sum):
     order = numpy.argsort(rep_rank_sum)
 #    order = numpy.argsort(-ref)
     len_target_not_zero = len(numpy.where(target > 0)[0])
-    print len_target_not_zero
+    #print len_target_not_zero
     ref = ref[order]
     target = target[order]
     tmm_array = numpy.array([])
@@ -232,7 +233,7 @@ def chip_tmm(ref, target, rep_rank_sum):
         #debug("The TMM estiamted from top %s windows is %s", n, tmm)
     library_ratio = numpy.sum(ref)/numpy.sum(target)
     tmm_diff_array = numpy.abs(tmm_array - library_ratio)
-    print tmm_array, tmm_diff_array
+    # print tmm_array, tmm_diff_array
     tmm_max = tmm_array[numpy.argmax(tmm_diff_array)]
     return tmm_max
 
@@ -264,32 +265,11 @@ def parse_to_bin_wrapper(args):
     except KeyboardInterrupt, e:
         pass 
         
-def parse_to_bin(filename, bin_size, parameter):
-    bin_dict = {}
-    for chr in parameter.chr_info:
-        row_num = int(parameter.chr_info[chr]/bin_size)
-        bin_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
-        
-    if parameter.file_format == "bed":
-        bin_dict = parse_bed_to_bin(filename, bin_size, bin_dict, parameter)
-    elif parameter.file_format == "bam":
-        bin_dict = parse_bam_to_bin(filename, bin_size, bin_dict, parameter)
-    elif parameter.file_format == "sam":
-        bin_dict = parse_sam_to_bin(filename, bin_size, bin_dict, parameter)    
-    
-    for chr in parameter.chr_info:
-        try: 
-            bin_array = numpy.append(bin_array, bin_dict[chr])
-        except UnboundLocalError: # if bin_array does not exist.
-            bin_array = bin_dict[chr]  
-            
-    return bin_array
     
     
-    
-def parse_bed_to_bin(filename, bin_size, bin_dict, parameter):
+def parse_bed_to_bin(filename, bin_size, bin_dict, input_dir):
     ''' parse the bed files into bin '''
-    infile = open(parameter.input_directory+filename, 'r')
+    infile = open(input_dir + filename, 'r')
     num = 0
     for line in infile: 
         num += 1
@@ -303,9 +283,9 @@ def parse_bed_to_bin(filename, bin_size, bin_dict, parameter):
             
     return bin_dict
 
-def parse_bam_to_bin(filename, bin_size, bin_dict, parameter):
+def parse_bam_to_bin(filename, bin_size, bin_dict, input_dir):
     num = 0
-    infile = pysam.Samfile(parameter.input_directory+filename, 'rb')
+    infile = pysam.Samfile(input_dir + filename, 'rb')
     for line in infile.fetch(until_eof=True):
         num += 1
         if num %10000000 == 0:
@@ -317,8 +297,8 @@ def parse_bam_to_bin(filename, bin_size, bin_dict, parameter):
             except (IndexError, KeyError) as e: pass # index out of range at the end of chr. 
     return bin_dict           
     
-def parse_sam_to_bin(filename, bin_size, bin_dict, parameter):
-    infile = open(parameter.input_directory+filename, 'r')
+def parse_sam_to_bin(filename, bin_size, bin_dict, input_dir):
+    infile = open(input_dir + filename, 'r')
     # skip the header of the SAM file. 
     for line in infile:
         if not line.startswith("@"):
@@ -340,4 +320,126 @@ def parse_sam_to_bin(filename, bin_size, bin_dict, parameter):
                 
     return bin_dict 
     
+def parse_sampe_to_bin(filename, bin_size, bin_dict, input_dir):
+    infile = open(input_dir+filename, 'r')
+    num = 0
+    reads_dict = {}
+    flen_dict = {}
+    flen_list = array.array('i',[])
+    # skip the header of the SAM file.
+    for line in infile:
+        if not line.startswith("@"):
+            pre_name = line.strip().split()[0]
+            break
+    line_saved = False
+    # start reading the real data
+    for line in infile:
+        num += 1
+        if num % 10000000 == 0:
+            print("{0:,} lines processed in {1}".format(num, filename))
+        words = line.strip().split()
+        name = words[0]
+        # if the sequence name has already been processed
+        if name == pre_name and line_saved == True:
+                continue
+        # else
+        #initialize the condition
+        pre_name = name
+        line_saved = False
+        # process the new sequence. 
+        flag = int(words[1])
+        if not flag & 0x0004: #if not unmapped
+            chr, pos,flen = words[2], int(words[3])-1, int(words[8])
+            if flen != 0: # if the other end mapped to the same chromosome
+                try:
+                    reads_dict[chr].append(pos+flen/2)
+                    flen_dict[chr].append(flen)
+                except KeyError:
+                    reads_dict[chr] = array.array('i',[pos+flen/2])
+                    flen_dict[chr] = array.array('i', [flen])
+                flen_list.append(abs(flen))
+                line_saved = True
+
+    print num
+    # will calculate the median fragment size and remove the reads that have larger fragment size than it. 
+    flen_median = numpy.median(flen_list)
+    # print flen_median
+
+    for chr in reads_dict:
+        flen_chr = numpy.array(flen_dict[chr])
+        reads_chr = numpy.array(reads_dict[chr])
+        reads_chr = reads_chr[numpy.where(numpy.abs(flen_chr) <= 2*flen_median)[0]]
+        for pos in reads_chr:
+            try:
+                bin_dict[chr][int(pos/bin_size)] += 1
+            except (IndexError, KeyError) as e: pass # index out of range
+    
+    return bin_dict
+
+def parse_bampe_to_bin(filename, bin_size, bin_dict, input_dir):
+    '''parse paired-end bam file'''
+
+    infile =pysam.Samfile(input_dir+filename, 'rb')
+    num = 0
+    reads_dict = {}
+    flen_dict = {}
+    flen_list = array.array('i',[])
+    # start proccessing the data.
+    line_saved = False
+    pre_name = ''
+    for line in infile.fetch(until_eof = True):
+        num += 1
+        if num % 10000000 == 0 :
+            print ("{0:,} lines processed in {1}".format(num, filename))
+        name = line.query_name
+        if name==pre_name and line_saved == True:
+            continue
+        # else 
+        #initialize the condition
+        pre_name = name
+        line_saved = False
+        if line.is_unmapped is False:
+            chr = infile.getrname(line.tid)
+            # pos = line.pos
+            # flen = line.tlen
+            if line.tlen !=0:
+                try: 
+                    reads_dict[chr].append(line.pos+line.tlen/2)
+                    flen_dict[chr].append(line.tlen)
+                except KeyError:
+                    reads_dict[chr] = array.array('i',[line.pos+line.tlen/2])
+                    flen_dict[chr] = array.array('i',[line.tlen])
+                flen_list.append(abs(line.tlen))
+                line_saved = True
+    print num
+    # calculate the median fragment size and remove reads that are two times larger.
+    flen_median = numpy.median(flen_list)
+    for chr in reads_dict:
+        flen_chr = numpy.array(flen_dict[chr])
+        reads_chr = numpy.array(reads_dict[chr])
+        reads_chr = reads_chr[numpy.where(numpy.abs(flen_chr) <= 2*flen_median)[0]]
+        for pos in reads_chr:
+            try:
+                bin_dict[chr][int(pos/bin_size)] += 1
+            except (IndexError, KeyError) as e: pass # index out of range
+
+    return bin_dict
+    
+def parse_to_bin(filename, bin_size, parameter):
+    bin_dict = {}
+    for chr in parameter.chr_info:
+        row_num = int(parameter.chr_info[chr]/bin_size)
+        bin_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
+        
+    parse_to_bin_dict = {'bed':parse_bed_to_bin,'bam':parse_bam_to_bin,'sam':parse_sam_to_bin,'sampe':parse_sampe_to_bin, 'bampe':parse_bampe_to_bin}
+
+    bin_dict = parse_to_bin_dict[parameter.file_format](filename, bin_size, bin_dict, parameter.input_directory)
+
+    for chr in parameter.chr_info:
+        try: 
+            bin_array = numpy.append(bin_array, bin_dict[chr])
+        except UnboundLocalError: # if bin_array does not exist.
+            bin_array = bin_dict[chr]  
+            
+    return bin_array
     

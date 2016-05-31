@@ -14,14 +14,19 @@ def preprocess(parameter):
     chip_filename = parameter.chip1[0]
     get_chromosome_info(parameter, chip_filename)
     get_read_length_info(parameter)
-    if parameter.window_size == -1:
+    if parameter.window_size < 0:
         windowSize.estimate_window_size(chip_filename, parameter)
     # if shift size is not available, estimate the shift size for chip1 and input1
-    if parameter.shift_size != -1:
+    if parameter.shift_size >= 0:
         for filename in parameter.get_filenames():
                 parameter.shift_dict[filename] = parameter.shift_size 
-    elif len(parameter.shift_dict) is 0:
-        shiftSize.estimate_shiftsizes(parameter)
+    else:
+        # if paired-end reads, set the shift size to 0.
+        if parameter.file_format in ['sampe','bampe']:
+            for filename in parameter.get_filenames():
+                parameter.shift_dict[filename] = 0
+        if len(parameter.shift_dict) is 0:
+            shiftSize.estimate_shiftsizes(parameter)
     # if normalization constants are not available, estimate it.     
     if len(parameter.normalization_dict) is 0:
         cal_normalization.cal_normalization_constant(parameter)
@@ -92,9 +97,9 @@ def get_chr_info_bed(parameter, filename):
 
 def get_chromosome_info(parameter, chip_filename):
     info ("getting chromosome info")
-    if parameter.file_format == "bam":
+    if parameter.file_format in ["bam","bampe"]:
          get_chr_info_bam(parameter, chip_filename)   
-    if parameter.file_format == "sam":
+    if parameter.file_format in ["sam","sampe"]:
          get_chr_info_sam(parameter, chip_filename)        
     if parameter.file_format == "bed":
          get_chr_info_bed(parameter, chip_filename)
@@ -103,9 +108,9 @@ def get_chromosome_info(parameter, chip_filename):
     return 
 
 def get_read_length_info(parameter):
-    if parameter.file_format == "bam":
+    if parameter.file_format in ["bam","bampe"]:
         get_read_length_from_bam(parameter)
-    if parameter.file_format == "sam":
+    if parameter.file_format in ["sam","sampe"]:
         get_read_length_from_sam(parameter)
     if parameter.file_format == "bed":
         get_read_length_from_bed(parameter)
@@ -119,7 +124,7 @@ def get_read_length_from_bam(parameter):
             length_list = []
             for idx in range(1000):
                 line = infile.fetch(until_eof=True).__next__()
-                length_list.append(line.alen)
+                length_list.append(line.query_alignment_length)
             length = max(length_list)
         parameter.read_length_dict[filename] = length
     return
