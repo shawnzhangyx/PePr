@@ -173,7 +173,7 @@ class Parameters:
         if  len(self.normalization_dict) == 0:
             if self.difftest is False and self.normalization =='':
                 self.normalization = "intra-group"
-            if self.normalization not in ['inter-group','intra-group','none']:
+            if self.normalization not in ['inter-group','intra-group','scale','none']:
                 raise Exception('''Please specify a normalization method: inter-group, intra-group, or scale. put 'no' if you don't want to normalize''')
             
         if self.difftest is True:
