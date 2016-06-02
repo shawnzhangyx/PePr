@@ -31,56 +31,30 @@ not exhibiting the expected shift size and/or to narrow the width of peaks.
 * For differential binding analysis without input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam -f bam`
 
 ### Parameters
-* *-h, --help*
-: Show this help message and exit.
-* *-i INPUT1*
-: Group 1 input files. *REQUIRED.* Multiple file names are
-    separated by comma,e.g. input1.bed,input2.bed
-* *-c CHIP1*
-:  ChIP-Seq chip group 1 files. *REQUIRED.* Multiple file names are
-    separated by comma, e.g. chip1.bed,chip2.bed
-* *--input2 INPUT2*
-:    Group 2 input files. Used in differential binding analysis.
-* *--chip2 CHIP2* 
-:    Group 2 ChIP-Seq files. Used in differential binding analysis.
-* *-n NAME*
-:    Experiment name. DEFAULT: "NA"
-* *-f FORMAT*
-:    File format. *REQUIRED.* (currently support bed, sam, bam)
-* *-s SHIFTSIZE*
-:    Half fragment size. The number of bases to shift
-    forward and reverse strand reads toward each other.
-    If not specified by user, PePr will empirically 
-    estimate this number from the data. A separate shift 
-    size will be estimated for each ChIP file. 
-* *-w WINDOWSIZE*
-:    Window size. If not specified by user, PePr will 
-    estimate this from the data.
-* *--diff*
-:   Whether to perform differential binding analysis.
-    If so, please provide chip2 and input2 samples as well.
-* *--threshold THRESHOLD*
- :   Significance cutoff for p-value DEFAULT:1e-5
-* *--peaktype PEAKTYPE*
-:    Is peak shape sharp or broad?(sharp, broad)
-* *--custom_normalization NORMALIZATION*
-:   Default: Yes. You can disable PePr's default normalization
-    method by specifying 'NO'. Or you can provide your own
-    Normalization constants separated by comma. 
-* *--num-processors=NUM_PROCS*
-:   Number of CPUs use on it.
-* *--input-directory=INPUT_DIRECTORY*
-:   where the data files are. The path specified here will be a prefix added to each of the files. The best practice is to always use absolute path in here. 
-*  *--output-directory=OUTPUT_DIRECTORY*
-:   where you want the output files to be. PePr will add this path as a prefix to the output files. It is recommended to use the absolute path. 
-*  *--version*
-:   Will show the version number and exit. 
+| Parameter|Description|
+|:---|:---|
+|*-i/--input1*|Group 1 input files. Multiple file names are separated by comma,e.g. input1.bed,input2.bed |
+|*-c/--chip1* |Group 1 ChIP files. |
+|*--input2*|Group 2 input files. Used in differential binding analysis.|
+|*--chip2*|Group 2 ChIP files. Used in differential binding analysis.|
+|*-n/--name*|Experiment name. Default: "NA"|
+|*-f/--file-format*|File format.(currently support bed, sam, bam, sampe, bampe)|
+|*-s/--shiftsize*|Half the fragment size. The number of bases to shift forward and reverse strand reads toward each other. If not specified by user, PePr will empirically estimate this number from the data.|
+|*-w/--windowsize*|Window size. If not specified by user, PePr will estimate this from the data.|
+|*--diff*|Tell PePr to perform differential binding analysis|
+|*--threshold*| p-value cutoff. Default:1e-5.|
+|*--peaktype*| sharp or broad. Default is broad.|
+|*--normalization*|inter-group, intra-group, scale, or no. Default is intra-group for peak-calling and inter-group for differential binding analysis.| 
+|*--num-processors*|Number of CPUs to run in parallel.|
+|*--input-directory*|where the data files are. The path specified here will be a prefix added to each of the files. The best practice is to always use absolute path in here.|
+|*--output-directory*|where you want the output files to be. PePr will add this path as a prefix to the output files. It is recommended to use the absolute path.|
+|*--version*|Will show the version number and exit.|
 
 ## Output Files
- * *NAME__PePr_peaks.bed:* A tab-delimited file containing chromosomal position of the peak, name, signal value, fold change, p-value and Benjamini-Hochberg FDR. Peak format is same as the [ENCODE BroadPeak](https://genome.ucsc.edu/FAQ/FAQformat.html#format13) format. 
-* *NAME__PePr_[chip1/2]_peaks.bed*: this is the same as above, but only available when you run in differential binding mode. "chip1_peaks" are enriched in chip1, "chip2_peaks* are enriched in chip2. 
-* *NAME__PePr_parameters.txt:* A file containing the parameters to reproduce the results. 
-* *NAME-Date-debug.log:* This file contains the detailed information about the running status. Useful debugging information contains: Chromosomes analyzed, shift size and window size estimation, number of candidate windows, etc.
+* **NAME__PePr_peaks.bed**: A tab-delimited file containing chromosomal position of the peak, name, signal value, fold change, p-value and Benjamini-Hochberg FDR. Peak format is same as the [ENCODE BroadPeak](https://genome.ucsc.edu/FAQ/FAQformat.html#format13) format. 
+* **NAME__PePr_[chip1/2]_peaks.bed**: this is the same as above, but only available when you run in differential binding mode. "chip1_peaks" are enriched in chip1, "chip2_peaks* are enriched in chip2. 
+* **NAME__PePr_parameters.txt**: A file containing the parameters to reproduce the results. 
+* **NAME-Date-debug.log**: This file contains the detailed information about the running status. Useful debugging information contains: Chromosomes analyzed, shift size and window size estimation, number of candidate windows, etc.
 
 ### Links
 * https://github.com/shawnzhangyx/PePr/ # Source code
