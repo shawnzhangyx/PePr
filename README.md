@@ -27,15 +27,15 @@ not exhibiting the expected shift size and/or to narrow the width of peaks.
 ### Basic Usage Examples
 *Warning: These are working examples with minimal required parameters. For the best performance (or to avoid bad fitting) on your data, please read the manual carefully and choose the right parameters.* 
 * For peak-calling, run: `PePr -c chip_rep1.bam,chip_rep2.bam -i input_rep1.bam,input_rep2.bam -f bam`
-* For differential binding analysis with input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam -i input1_rep1.bam,input1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam --input2 input2_rep2.bam,input2_rep2.bam -f bam`
-* For differential binding analysis without input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam -f bam`
-* To use a parameter file, run: `PePr -p parameter_file.txt`. For how to write a parameter file, see the section `Parameter file` below. 
+* For differential binding analysis with input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam -i input1_rep1.bam,input1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam --input2 input2_rep2.bam,input2_rep2.bam -f bam --diff`
+* For differential binding analysis without input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam -f bam --diff`
+* To use a parameter file, run: `PePr -p parameter_file.txt`. For how to write a parameter file, see the section `Parameter File` below. 
 
 ### Parameters
 | Parameter|Description|
 |:---|:---|
 |*-p/--parameter-file*|Use parameter file instead of command line options. Using a parameter file will ignore all other command options. See the next section for parameter file configuration.|
-|*-i/--input1*|Group 1 input files. Multiple file names are separated by comma,e.g. input1.bed,input2.bed |
+|*-i/--input1*|Group 1 input files. Multiple file names are separated by comma,e.g. input1.bam,input2.bam. you can also specify relative path to the file names, like folder1/input1.bam,folder2/input2.bam,folder3/input3.bam|
 |*-c/--chip1* |Group 1 ChIP files. |
 |*--input2*|Group 2 input files. Used in differential binding analysis.|
 |*--chip2*|Group 2 ChIP files. Used in differential binding analysis.|
