@@ -25,7 +25,7 @@ not exhibiting the expected shift size and/or to narrow the width of peaks.
 * Paired-end: BAM, SAM. The files must be sorted by the read names. Users can use `samtools sort -n sample.bam sample.sorted_by_name` to sort the file. 
 
 ### Basic Usage Examples
-*Warning: These are working examples with minimal required parameters. For the best performance (or to avoid bad fitting) on your data, please read the manual carefully and choose the right parameters.* 
+*Warning: These are working examples with minimal required parameters. For the best performance (or to avoid bad fitting) on your data, please read this manual carefully and choose the right parameters.* 
 * For peak-calling, run: `PePr -c chip_rep1.bam,chip_rep2.bam -i input_rep1.bam,input_rep2.bam -f bam`
 * For differential binding analysis with input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam -i input1_rep1.bam,input1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam --input2 input2_rep2.bam,input2_rep2.bam -f bam --diff`
 * For differential binding analysis without input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam -f bam --diff`
@@ -34,20 +34,20 @@ not exhibiting the expected shift size and/or to narrow the width of peaks.
 ### Parameters
 | Parameter|Description|
 |:---|:---|
-|*-p/--parameter-file*|Use parameter file instead of command line options. Using a parameter file will ignore all other command options. See the next section for parameter file configuration.|
-|*-i/--input1*|Group 1 input files. Multiple file names are separated by comma,e.g. input1.bam,input2.bam. you can also specify relative path to the file names, like folder1/input1.bam,folder2/input2.bam,folder3/input3.bam|
+|*-p/--parameter-file*|Use parameter file instead of command line options. Using a parameter file will ignore all other command line options. See the next section for parameter file configuration.|
+|*-i/--input1*|Group 1 input files. Multiple file names are separated by comma, e.g. input1.bam,input2.bam. you can also specify relative path to the file names, like folder1/input1.bam,folder2/input2.bam,folder3/input3.bam|
 |*-c/--chip1* |Group 1 ChIP files. |
-|*--input2*|Group 2 input files. Used in differential binding analysis.|
-|*--chip2*|Group 2 ChIP files. Used in differential binding analysis.|
-|*-n/--name*|Experiment name. Default: "NA"|
-|*-f/--file-format*|File format.(currently support bed, sam, bam, sampe, bampe)|
-|*-s/--shiftsize*|Half the fragment size. The number of bases to shift forward and reverse strand reads toward each other. If not specified by user, PePr will empirically estimate this number from the data.|
-|*-w/--windowsize*|Window size. If not specified by user, PePr will estimate this from the data.|
-|*--diff*|Tell PePr to perform differential binding analysis|
+|*--input2*|Group 2 input files. Use in differential binding analysis.|
+|*--chip2*|Group 2 ChIP files. Use in differential binding analysis.|
+|*-n/--name*|Experiment name. It will be prefix to all output files from PePr. Default: "NA"|
+|*-f/--file-format*|Read file format. Currently support bed, sam, bam, sampe (sam paired-end), bampe (bam paired-end) |
+|*-s/--shiftsize*|Half the fragment size. The number of bases to shift forward and reverse strand reads toward each other. If not specified by user, PePr will empirically estimate this number from the data for each ChIP sample.|
+|*-w/--windowsize*| Sliding window size. If not specified by user, PePr will estimate this by calculating the average width of potential peaks. The lower and upper bound for PePr estimate is 100bp and 1000bp. User provided window size is not constrained, but we recommend to stay in this range (100-1000bp).|
+|*--diff*|Tell PePr to perform differential binding analysis.|
 |*--threshold*| p-value cutoff. Default:1e-5.|
-|*--peaktype*| sharp or broad. Default is broad.|
-|*--normalization*|inter-group, intra-group, scale, or no. Default is intra-group for peak-calling and inter-group for differential binding analysis.| 
-|*--keep-max-dup*|maximum number of duplicated reads to keep. If not specified, will not remove any duplicate.|
+|*--peaktype*| sharp or broad. Default is broad. PePr treats broad peaks (like H3k27me3) and sharp peaks(like most transcriptions factors) slightly different. Specify this option if you know the feature of the peaks.|
+|*--normalization*|inter-group, intra-group, scale, or no. Default is intra-group for peak-calling and inter-group for differential binding analysis. PePr is using a modified TMM method to normalize for the difference in IP efficiencies between samples (see the supplementary methods of the paper). It is making an implicit assumption that there is substantial overlap of peaks in every sample. However, it is sometimes not true between groups (for example, between TF ChIP-seq and TF knockout). So for differential binding analysis, switch to intra-group normalization. *scale* is simply scaling the reads so the total library sizes are the same. *no* normalization will not do normalization. |
+|*--keep-max-dup*|maximum number of duplicated reads at *each single position* to keep. If not specified, will not remove any duplicate.|
 |*--num-processors*|Number of CPUs to run in parallel.|
 |*--input-directory*|where the data files are. The path specified here will be a prefix added to each of the files. The best practice is to always use absolute path in here.|
 |*--output-directory*|where you want the output files to be. PePr will add this path as a prefix to the output files. It is recommended to use the absolute path.|
