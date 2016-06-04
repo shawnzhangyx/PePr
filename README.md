@@ -2,15 +2,7 @@
 # PePr v1.1.10 
 
 ### Introduction
-PePr is a ChIP-Seq Peak-calling and Prioritization pipeline 
-that uses a sliding window approach and models read counts across 
-replicates and between groups with a negative binomial distribution. 
-PePr empirically estimates the optimal shift/fragment size and 
-sliding window width, and estimates dispersion from the local genomic
-area. Regions with less variability across replicates are ranked more
-favorably than regions with greater variability. Optional 
-post-processing steps are also made available to filter out peaks
-not exhibiting the expected shift size and/or to narrow the width of peaks.
+PePr is a ChIP-Seq Peak-calling and Prioritization pipeline that uses a sliding window approach and models read counts across replicates and between groups with a negative binomial distribution. PePr empirically estimates the optimal shift/fragment size and sliding window width, and estimates dispersion from the local genomic area. Regions with less variability across replicates are ranked more favorably than regions with greater variability. Optional post-processing steps are also made available to filter out peaks not exhibiting the expected shift size and/or to narrow the width of peaks.
 
 ### Installation
 1. Make sure your python version is higher than 2.6. Version 3.X may not be fully supported yet.
@@ -81,7 +73,7 @@ PePr will also output a complete parameter file for you to keep a record of your
 * **NAME__PePr_peaks.bed**: A tab-delimited file containing chromosomal position of the peak, name, signal value, fold change, p-value and Benjamini-Hochberg FDR. Peak format is same as the [ENCODE BroadPeak](https://genome.ucsc.edu/FAQ/FAQformat.html#format13) format. 
 * **NAME__PePr_[chip1/2]_peaks.bed**: this is the same as above, but only available when you run in differential binding mode. "chip1_peaks" are enriched in chip1, "chip2_peaks* are enriched in chip2. 
 * **NAME__PePr_parameters.txt**: A file containing the parameters to reproduce the results. 
-* **NAME-Date-debug.log**: This file contains the detailed information about the running status. Useful debugging information contains: Chromosomes analyzed, shift size and window size estimation, number of candidate windows, etc.
+* **NAME-Date-Time-SessionID-debug.log**: This file contains the detailed information about the running status. Useful debugging information contains: Chromosomes analyzed, shift size and window size estimation, number of candidate windows, etc.
 
 
 ### Links
