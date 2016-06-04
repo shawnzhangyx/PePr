@@ -1,7 +1,5 @@
 
-> PePr v1.1.10 
-> Timestamp: 06-01-2016 Yanxiao Zhang zhangyx.shawn@gmail.com
-------------------------------------------------------------
+# PePr v1.1.10 
 
 ### Introduction
 PePr is a ChIP-Seq Peak-calling and Prioritization pipeline 
@@ -25,10 +23,20 @@ not exhibiting the expected shift size and/or to narrow the width of peaks.
 * Paired-end: BAM, SAM. The files must be sorted by the read names. Users can use `samtools sort -n sample.bam sample.sorted_by_name` to sort the file. 
 
 ### Basic Usage Examples
-*Warning: These are working examples with minimal required parameters. For the best performance (or to avoid bad fitting) on your data, please read this manual carefully and choose the right parameters.* 
-* For peak-calling, run: `PePr -c chip_rep1.bam,chip_rep2.bam -i input_rep1.bam,input_rep2.bam -f bam`
-* For differential binding analysis with input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam -i input1_rep1.bam,input1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam --input2 input2_rep2.bam,input2_rep2.bam -f bam --diff`
-* For differential binding analysis without input samples, run: `PePr -c chip1_rep1.bam,chip1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam -f bam --diff`
+*Warning: These are working examples with minimal required parameters. For the best performance (or to avoid bad fitting) on your data, please read this manual carefully and choose the right parameters.*
+
+* For peak-calling, run: 
+```
+PePr -c chip_rep1.bam,chip_rep2.bam -i input_rep1.bam,input_rep2.bam -f bam
+```
+* For differential binding analysis with input samples, run: 
+```
+PePr -c chip1_rep1.bam,chip1_rep2.bam -i input1_rep1.bam,input1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam --input2 input2_rep2.bam,input2_rep2.bam -f bam --diff
+```
+* For differential binding analysis without input samples, run: 
+```
+PePr -c chip1_rep1.bam,chip1_rep2.bam --chip2 chip2_rep1.bam,chip2_rep2.bam -f bam --diff
+```
 * To use a parameter file, run: `PePr -p parameter_file.txt`. For how to write a parameter file, see the section `Parameter File` below. 
 
 ### Parameters
