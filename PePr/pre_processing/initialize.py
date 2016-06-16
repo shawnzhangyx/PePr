@@ -124,7 +124,7 @@ def get_read_length_from_bam(parameter):
             length_list = []
             for idx in range(1000):
                 line = infile.fetch(until_eof=True).__next__()
-                length_list.append(line.query_alignment_length)
+                length_list.append(line.query_length)
             length = max(length_list)
         parameter.read_length_dict[filename] = length
     return
