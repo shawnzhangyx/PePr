@@ -16,7 +16,7 @@ PePr is a ChIP-Seq Peak-calling and Prioritization pipeline that uses a sliding 
 
 ### Scripts to call PePr
 The following scripts are available after the installation and can be called directly from bash console/terminal.
-* **PePr**: the main PePr function. Will run the entire pipline incluing the parameter estimation and statistical testing. *This does not include post-processing step. 
+* **PePr**: the main PePr function. Will run the entire pipline including the parameter estimation and statistical testing. *This does not include post-processing step.*
 * **PePr-preprocess**: PePr preprocess function. Will only run the parameter estimation step and output a parameter file for the user to use. Users could use/modify the parameter file and then run **PePr** main function with it. 
 * **PePr-postprocess**: PePr postprocess function. This function will take PePr peaks and remove suspected false positives using the peak shapes. The ChIP and input files of the group where the peaks from are required for this function. For example, chip1 and input1 files will be needed for chip1_peaks. This function loads all of the reads into memory, so if you don't have enough memory on your machine, you don't have to give PePr all ChIP/input files. 2 to 3 files might suffice under certain circumstances. 
 
