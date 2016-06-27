@@ -56,7 +56,6 @@ class Parameters:
         self.validate_files()
         logConfig.startLog(self.output_directory + self.name)
         self.check_file_formats()
-
         # --- initialize logging --- #
 
     def process_parameter_file(self, parameter_file):
@@ -81,7 +80,7 @@ class Parameters:
             elif key == "input2":
                 self.input2.append(value[0])
             # read the shift size and normalization constants. 
-            elif key in ['chip1','chip2','input1','input2']:
+            if key in ['chip1','chip2','input1','input2']:
                 if len(value) > 1: 
                     self.shift_dict[value[0]] = int(value[1])
                 if len(value) > 2:

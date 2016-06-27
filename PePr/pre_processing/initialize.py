@@ -124,7 +124,11 @@ def get_read_length_from_bam(parameter):
             length_list = []
             for idx in range(1000):
                 line = infile.fetch(until_eof=True).__next__()
-                length_list.append(line.query_length)
+                try:
+                    length_list.append(line.query_length)
+                # rlen is deprecated starting from pysam v0.9
+                except AttributeError: 
+                    length_list.append(line.rlen)
             length = max(length_list)
         parameter.read_length_dict[filename] = length
     return

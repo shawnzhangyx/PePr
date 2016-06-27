@@ -108,6 +108,8 @@ def read_file_to_array(filename, parameter):
     data_dict = {}
     for chr in parameter.chr_info:
         row_num = int(parameter.chr_info[chr]/move_size) - 1
+        if row_num < 1: # if the chromosome length is less than window size. 
+            row_num = 1 
         data_dict[chr] = numpy.zeros(row_num, dtype=numpy.float64)
     if parameter.file_format.endswith('pe'):
         fragments_list = [parse_file_pe[parameter.file_format](filename,parameter.input_directory)]
@@ -129,7 +131,7 @@ def read_file_to_array(filename, parameter):
                 # index out of range at the end of chr.
                 except (IndexError, KeyError) as e: pass 
         
-    for chr in parameter.chr_info: 
+    for chr in data_dict: 
         data_dict[chr] = data_dict[chr] + numpy.roll(data_dict[chr],-1)
         data_dict[chr] = data_dict[chr] * parameter.normalization_dict[filename]
     return data_dict 
@@ -165,11 +167,11 @@ def prepare_data_peak_calling(parameter):
                 data_dict[chr] = numpy.column_stack((data_dict[chr], parameter.array_dict[filename][chr]))
             except KeyError:
                 data_dict[chr] = parameter.array_dict[filename][chr]
-    
+            del parameter.array_dict[filename][chr] 
     for filename in parameter.input1:
         for chr in parameter.chr_info:
             data_dict[chr] = numpy.column_stack((data_dict[chr], parameter.array_dict[filename][chr]))
-        
+            del parameter.array_dict[filename][chr]        
     
     return data_dict
     
@@ -184,7 +186,8 @@ def prepare_data_diff_binding(parameter):
                 chip1_array[chr] = numpy.column_stack((chip1_array[chr], parameter.array_dict[filename][chr]))
             except KeyError:
                 chip1_array[chr] = parameter.array_dict[filename][chr]
-                
+            # delete the original array. 
+            del parameter.array_dict[filename][chr]
     if len(parameter.input1)> 0:
         input1_array = {}
         if parameter.chip1_matched_input is True: 
@@ -194,6 +197,7 @@ def prepare_data_diff_binding(parameter):
                         input1_array[chr] = numpy.column_stack((input1_array[chr], parameter.array_dict[filename][chr]))
                     except KeyError:
                         input1_array[chr] = parameter.array_dict[filename][chr]     
+                    del parameter.array_dict[filename][chr]
         else: 
             for filename in parameter.input1:
                 for chr in parameter.chr_info:
@@ -201,6 +205,7 @@ def prepare_data_diff_binding(parameter):
                         input1_array[chr] += parameter.array_dict[filename][chr]
                     except KeyError:
                         input1_array[chr] = parameter.array_dict[filename][chr] 
+                    del parameter.array_dict[filename][chr]
             for chr in parameter.chr_info:
                 input1_array[chr] /= len(parameter.input1)
                 input1_array[chr].resize(len(input1_array[chr]),1)
@@ -216,7 +221,7 @@ def prepare_data_diff_binding(parameter):
                 chip2_array[chr] = numpy.column_stack((chip2_array[chr], parameter.array_dict[filename][chr]))
             except KeyError:
                 chip2_array[chr] = parameter.array_dict[filename][chr]
-                
+            del parameter.array_dict[filename][chr]    
     if len(parameter.input2)> 0:
         input2_array = {}
         if parameter.chip2_matched_input is True: 
@@ -225,7 +230,8 @@ def prepare_data_diff_binding(parameter):
                     try: 
                         input2_array[chr] = numpy.column_stack((input2_array[chr], parameter.array_dict[filename][chr]))
                     except KeyError:
-                        input2_array[chr] = parameter.array_dict[filename][chr]                
+                        input2_array[chr] = parameter.array_dict[filename][chr]
+                    del parameter.array_dict[filename][chr]
         else: 
             for filename in parameter.input2:
                 for chr in parameter.chr_info:
@@ -233,6 +239,7 @@ def prepare_data_diff_binding(parameter):
                         input2_array[chr] += parameter.array_dict[filename][chr]
                     except KeyError:
                         input2_array[chr] = parameter.array_dict[filename][chr] 
+                    del parameter.array_dict[filename][chr]
             for chr in parameter.chr_info:
                 input2_array[chr] /= len(parameter.input2)
                 input2_array[chr].resize(len(input2_array[chr]),1)
@@ -242,7 +249,8 @@ def prepare_data_diff_binding(parameter):
         
     for chr in parameter.chr_info:
         data_dict[chr] =numpy.column_stack((chip1_array[chr], chip2_array[chr]))
-        
+        del chip1_array[chr]
+        del chip2_array[chr]
     return data_dict
     
     

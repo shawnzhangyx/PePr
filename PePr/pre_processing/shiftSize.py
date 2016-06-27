@@ -116,7 +116,7 @@ def parse_bam_for_f_r(filename, parameter):
     infile =pysam.Samfile(parameter.input_directory+filename, 'rb')
     for line in infile.fetch(until_eof = True):
         num += 1
-        if num % 1000000 == 0 :
+        if num % 10000000 == 0 :
             print ("{0:,} lines processed in {1}".format(num, filename))
         if line.is_unmapped is False:
             chr = infile.getrname(line.tid)
