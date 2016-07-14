@@ -57,7 +57,7 @@ def process_opt(opt):
         raise Exception("No peak files.")
     if opt.type =='':
         raise Exception("File type not given.")
-    if opt.remove_artefacts == False and opt.narrrow_peak == False:
+    if opt.remove_artefacts == False and opt.narrow_peak == False:
         raise Exception("Please specify at least one post-processing option: --remove-artefacts or --narrow-peak-boundary")
  
     ## start process chip file names.
