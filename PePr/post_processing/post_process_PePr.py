@@ -2,7 +2,7 @@
 
 ###########################################################
 ### script for removing artifactual peaks in the peak file. 
-### Usage: python post_processing_PePr.py --peak peak_file --chip chip.files.sep.by.comma --input input.files.sep.by.comma --file-type type
+### Usage: python post_processing_PePr.py --peak peak_file --chip chip.files.sep.by.comma --input input.files.sep.by.comma --file-type type --remove-artefacts --narrow-peak-boundary
 ### Yanxiao Zhang <yanxiazh@umich.edu> 
 ### Timestamp 5/24/2016
 #######################
@@ -34,6 +34,14 @@ def opt_parser(argv):
         '--file-type', action='store',type='string',
         dest='type', default='',
         help='read file types. bed, sam, bam')
+    parser.add_option(
+        '--remove-artefacts', action='store_true',
+        dest="remove_artefacts",default=False,
+        help="remove peaks that may be caused by excess PCR duplicates")
+    parser.add_option(
+        '--narrow-peak-boundary',action='store_true',
+        dest="narrow_peak",default=False,
+        help='make peak width smaller but still contain the core binding region')
     (opt, args)=parser.parse_args(argv)
     if len(argv) == 1:
         parser.print_help()
@@ -49,6 +57,9 @@ def process_opt(opt):
         raise Exception("No peak files.")
     if opt.type =='':
         raise Exception("File type not given.")
+    if opt.remove_artefacts == False and opt.narrrow_peak == False:
+        raise Exception("Please specify at least one post-processing option: --remove-artefacts or --narrow-peak-boundary")
+ 
     ## start process chip file names.
     opt.chip = opt.chip.strip().split(',')
     opt.input = opt.input.strip().split(',')
@@ -83,7 +94,7 @@ def main(argv):
     for filename in opt.chip+opt.input:
         print "reading {0}".format(filename)
         data_dict[filename] = {}
-        forward, reverse = parse_file_by_strand[readData.file_format](filename,readData)
+        forward, reverse = parse_file_by_strand[readData.file_format](filename,readData.input_directory)
         for chr in set(forward.keys())&set(reverse.keys()):
             data_dict[filename][chr] = {}
             data_dict[filename][chr]['f'] = numpy.array(forward[chr])
@@ -91,11 +102,21 @@ def main(argv):
     readData.data_dict_by_strands = data_dict     
     
     file_in = open(opt.peak, 'r')
-    file_passed = open(opt.peak+'_passed', 'w')
-    file_failed = open(opt.peak+'_failed', 'w')
-    post_processing(readData,file_in,file_passed,file_failed)
+    file_passed_name = opt.peak
+    file_failed_name = opt.peak
+    if opt.remove_artefacts == True:
+        file_passed_name += '.passed'
+        file_failed_name += '.failed'
+    if opt.narrow_peak == True:
+        file_passed_name += '.boundary_refined'
+        file_failed_name += '.boundary_refined'
 
-def post_processing(readData, peak, passed, filtered, remove_artefacts=True, narrow_peak=False):
+    file_passed = open(file_passed_name, 'w')
+    file_failed = open(file_failed_name, 'w')
+
+    post_processing(readData,file_in,file_passed,file_failed, opt.remove_artefacts, opt.narrow_peak)
+
+def post_processing(readData, peak, passed, filtered, remove_artefacts=False, narrow_peak=False):
     print(" Begin post-processing.")
     chip_list =  readData.chip_filename_list
     input_list = readData.input_filename_list
@@ -143,7 +164,7 @@ def post_processing(readData, peak, passed, filtered, remove_artefacts=True, nar
 def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
                              start, end, readLength, narrow_peak,
                              remove_artefacts):
-    ''' Remove artefacts that may be caused by PCR duplicates'''
+    ''' Remove artefacts that may be caused by PCR duplicates and/or refine peak boundary'''
 
     chip_forward = numpy.zeros(end-start)
     chip_reverse = numpy.zeros(end-start)
@@ -206,8 +227,9 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
         overlap_chip_input = 0
         overlap_orig = 1e-5
         overlap_roll = 0
-
-    '''if narrow_peak is True:
+    
+    # narrow peak width
+    if narrow_peak is True:
         sum_forward = 0
         sum_reverse = 0
         if sum(chip_forward) > 0:
@@ -225,11 +247,15 @@ def post_processing_per_peak(strands_dict, chip_list, input_list, chr,
                     new_end = start + i
                     break
         if sum(chip_forward) == 0:
-            new_start = new_end - 2*shiftSize
+            new_start = start #new_end - 2*shiftSize
         if sum(chip_reverse) == 0:
-            new_end = new_start + 2*shiftSize
+            new_end = end # new_start + 2*shiftSize
+        if new_start+ readLength > new_end:
+            # if the peak width is negative, use the original peak boundary. 
+            new_start = start
+            new_end = end
         start = new_start
-        end = new_end'''
+        end = new_end
 
     return (start, end, overlap_chip_input,
             overlap_orig, overlap_roll)

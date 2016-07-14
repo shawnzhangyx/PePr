@@ -1,3 +1,7 @@
+2016-07-14 Yanxiao Zhang <yanxiazh@umich.edu>
+	* version 1.1.13
+	* added refine peak boundary back to the post-processing module
+
 2016-06-27 Yanxiao Zhang <yanxiazh@umich.edu>
 	* version 1.1.9-1.1.12
 	* hotfixes
