@@ -175,7 +175,7 @@ class Parameters:
                     self.normalization = "intra-group"
                 else: 
                     self.normalization = "inter-group"
-            if self.normalization not in ['inter-group','intra-group','scale','none']:
+            if self.normalization not in ['inter-group','intra-group','scale','no']:
                 raise Exception('''Please specify a normalization method: inter-group, intra-group, or scale. put 'no' if you don't want to normalize''')
             
         if self.difftest is True:

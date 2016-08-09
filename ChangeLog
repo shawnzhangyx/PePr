@@ -1,3 +1,8 @@
+2016-08-08 Yanxiao Zhang <yanxiazh@umich.edu>
+	* version 1.1.13
+	* fixed a bug if the bam file read is smaller 1000 reads. 
+	* fixed a bug where 'no' for normalization will not run. 
+
 2016-07-14 Yanxiao Zhang <yanxiazh@umich.edu>
 	* version 1.1.13
 	* added refine peak boundary back to the post-processing module

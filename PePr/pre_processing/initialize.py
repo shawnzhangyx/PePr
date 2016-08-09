@@ -122,8 +122,13 @@ def get_read_length_from_bam(parameter):
     for filename in parameter.get_filenames():
         with pysam.Samfile(parameter.input_directory+filename, 'rb') as infile:
             length_list = []
-            for idx in range(1000):
-                line = infile.fetch(until_eof=True).__next__()
+            num = 0
+            #for idx in range(1000):
+            #    line = infile.fetch(until_eof=True).__next__()
+            for line in infile.fetch(until_eof=True):
+                num += 1
+                if num == 1000:
+                    break
                 try:
                     length_list.append(line.query_length)
                 # rlen is deprecated starting from pysam v0.9
