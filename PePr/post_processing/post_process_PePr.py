@@ -139,19 +139,18 @@ def post_processing(readData, peak, passed, filtered, remove_artefacts=False, na
         if remove_artefacts and (chip_input_ratio > 0.5 or
                 (overlap_orig > 0.2 and
                 overlap_roll/overlap_orig < 0.5)):
-            filtered.write(chr+"\t" + str(start) + '\t' + str(end) + '\t' +
-                        str(end-start)+'\t')
+            filtered.write(chr+"\t" + str(start) + '\t' + str(end) )
             for item in rest: 
-                filtered.write(item +'\t')
-            filtered.write(str(chip_input_ratio) + '\t' +
-                        '\t' + str(overlap_orig) +
-                        '\t' + str(overlap_roll) + '\n')
+                filtered.write( '\t' + item )
+            filtered.write('\n')
+        #    filtered.write(str(chip_input_ratio) + '\t' +
+        #                '\t' + str(overlap_orig) +
+        #                '\t' + str(overlap_roll) + '\n')
             removed_count += 1
             continue
-        passed.write(chr+"\t" + str(start) + '\t' + str(end) + '\t' +
-                     str(end-start)+'\t')
+        passed.write(chr+"\t" + str(start) + '\t' + str(end) ) 
         for item in rest:
-            passed.write(item +'\t')
+            passed.write('\t' + item )
         passed.write('\n')
         ## will not write additional information
         #passed.write(str(chip_input_ratio) + '\t' +
