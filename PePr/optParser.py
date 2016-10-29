@@ -81,7 +81,7 @@ def opt_parser(argv):
     parser.add_option(
             "--keep-max-dup", action="store",
             type="int", dest="keep_max_dup", default=-1,
-            help='''maximum number of duplicated reads to keep
+            help='''maximum number of reads to keep at each position.
             if not specified, will not remove any duplicate.''')
     '''parser.add_option(
             "--no_log", action="store_true",
