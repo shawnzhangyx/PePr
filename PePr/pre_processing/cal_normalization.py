@@ -73,7 +73,7 @@ def get_file_line_counts(filename, parameter):
                 flag = int(words[1])
                 if not flag & 0x004:
                     idx += 1
-    elif parameter.file_format == ["bam","bampe"]:
+    elif parameter.file_format in ["bam","bampe"]:
         with pysam.Samfile(parameter.input_directory + filename, 'rb') as infile:
             for line in infile.fetch(until_eof = True):
                 if line.is_unmapped is False:
