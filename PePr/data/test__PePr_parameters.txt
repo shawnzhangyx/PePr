@@ -3,13 +3,14 @@ chip1	chip_rep1.bed	90	1.34845100016
 chip1	chip_rep2.bed	90	0.796284305205
 input1	input_rep1.bed	90	1.58362224379
 input1	input_rep2.bed	90	1.85384266949
-file_format	bed
-peaktype	broad
+file-format	bed
+peaktype	sharp
 windowsize	200
 difftest	False
 threshold	1e-05
-normalization	compound
-input_directory	./
-output_directory	./
+normalization	intra-group	
+keep-max-dup	1
+input-directory	./
+output-directory	./
 name	test
-num_processors	1
+num-processors	4

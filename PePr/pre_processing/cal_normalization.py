@@ -116,7 +116,7 @@ def within_group_tmm(parameter):
     
     # process chip2 array if there is any
     if len(parameter.chip2) > 0:
-        for chip in parameter.chip1:
+        for chip in parameter.chip2:
             try: 
                 chip2_array_mixed = chip2_array_mixed + bin_dict[chip] 
                 chip2_rep_rank_sum += rankdata(-bin_dict[chip])
