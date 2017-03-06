@@ -152,7 +152,7 @@ def parse_sam_for_f_r(filename, parameter):
         if not flag & 0x0004: #if not unmapped
             chr, pos =  words[2], int(words[3])-1
             if not flag & 0x0010: # if not reverse
-                try:  forward[chr].apend(pos)
+                try:  forward[chr].append(pos)
                 except KeyError:
                     forward[chr] = array.array('i',[pos])
             else: 
