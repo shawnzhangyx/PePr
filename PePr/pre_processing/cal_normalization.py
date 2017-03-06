@@ -36,7 +36,7 @@ def scale(parameter):
             parameter.lib_size_dict[filename] = line_num
     else:
         pool =  multiprocessing.Pool(parameter.num_procs)
-        p = pool.map_async(get_file_line_counts_wrapper, itertools.izip(parameter.get_filenames(), itertools.repeat(parameter)),1)
+        p = pool.map_async(get_file_line_counts_wrapper, zip(parameter.get_filenames(), itertools.repeat(parameter)),1)
         try: results = p.get()
         except KeyboardInterrupt:
             exit(1)
@@ -95,12 +95,12 @@ def within_group_tmm(parameter):
     
     else: 
         pool = multiprocessing.Pool(parameter.num_procs)
-        p = pool.map_async(parse_to_bin_wrapper, itertools.izip(parameter.get_filenames_wo_bin_dict(), itertools.repeat(bin_size), itertools.repeat(parameter)),1)
+        p = pool.map_async(parse_to_bin_wrapper, zip(parameter.get_filenames_wo_bin_dict(), itertools.repeat(bin_size), itertools.repeat(parameter)),1)
         try: results = p.get()
         except KeyboardInterrupt:
             exit(1)
             
-        for filename, array in itertools.izip(parameter.get_filenames_wo_bin_dict(), results):
+        for filename, array in zip(parameter.get_filenames_wo_bin_dict(), results):
             parameter.bin_dict[filename] = array
             
     # process chip1 array 
@@ -157,12 +157,12 @@ def between_group_tmm(parameter):
             bin_dict[filename] = parse_to_bin(filename, bin_size, parameter)
     else:
         pool = multiprocessing.Pool(parameter.num_procs)
-        p = pool.map_async(parse_to_bin_wrapper, itertools.izip(parameter.get_filenames_wo_bin_dict(), itertools.repeat(bin_size), itertools.repeat(parameter)),1)
+        p = pool.map_async(parse_to_bin_wrapper, zip(parameter.get_filenames_wo_bin_dict(), itertools.repeat(bin_size), itertools.repeat(parameter)),1)
         try: results = p.get()
         except KeyboardInterrupt:
             exit(1)
 
-        for filename, array in itertools.izip(parameter.get_filenames_wo_bin_dict(), results):
+        for filename, array in zip(parameter.get_filenames_wo_bin_dict(), results):
             parameter.bin_dict[filename] = array
 
     # process chip array

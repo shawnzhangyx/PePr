@@ -324,7 +324,7 @@ class Parameters:
         return sum(self.chr_info.values())
     
     def get_top3_chr(self):
-        values = self.chr_info.values()
+        values = [i for i in self.chr_info.values()]
         values.sort()
         values.reverse()
         values_top3 = values[0:3]

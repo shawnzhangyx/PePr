@@ -22,12 +22,12 @@ def estimate_shiftsizes(parameter):
             parameter.bin_dict[chip] = bin_array
     else: 
         pool = multiprocessing.Pool(parameter.num_procs)
-        p = pool.map_async(estimate_shiftsize_wrapper, itertools.izip(parameter.get_chip_filenames(), itertools.repeat(parameter)),1)
+        p = pool.map_async(estimate_shiftsize_wrapper, zip(parameter.get_chip_filenames(), itertools.repeat(parameter)),1)
         
         try: results = p.get()
         except KeyboardInterrupt:
             exit(1)
-        for chip, result in itertools.izip(parameter.get_chip_filenames(), results):
+        for chip, result in zip(parameter.get_chip_filenames(), results):
             parameter.shift_dict[chip] = result[0]
             parameter.bin_dict[chip] = result[1]
            
@@ -64,25 +64,27 @@ def estimate_shiftsize(chip, parameter):
         chr_f,chr_r = forward[chr],reverse[chr]
         shift_list.append(cross_cor(chr_f,chr_r))
     shift_list.sort()
-    frag_size = shift_list[len(shift_list)/2]
+    frag_size = shift_list[int(len(shift_list)/2)]
     ### parse the reads into bins
     for chr in parameter.chr_info:
         if chr in forward:
             for pos in forward[chr]:
-                try: bin_dict[chr][pos/BIN] += 1 
+                try: bin_dict[chr][int(pos/BIN)] += 1 
                 except IndexError:
+                #    print("Index Error")
                     pass
         if chr in reverse:
             for pos in reverse[chr]:
-                try: bin_dict[chr][pos/BIN] += 1
+                try: bin_dict[chr][int(pos/BIN)] += 1
                 except IndexError:
+                #    print("Index Error")
                     pass
         try: bin_array = numpy.append(bin_array, bin_dict[chr])
         except UnboundLocalError:
             bin_array = bin_dict[chr]
 
     frag_size += parameter.read_length_dict[chip]
-    shift_size = frag_size/2
+    shift_size = int(frag_size/2)
     info("The shift size for %s is %d", chip, shift_size)
     return (shift_size, bin_array)
 

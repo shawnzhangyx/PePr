@@ -33,7 +33,7 @@ def weighted_log_likelihood(v_hat, m, n, reads, diff_test):
        of current and adjacent windows using a triangular weight.'''
     equation = 0
     n_window = len(reads)
-    baseline = numpy.mean(reads[n_window/2,0:m])
+    baseline = numpy.mean(reads[int(n_window/2),0:m])
     for idx in range(n_window):
         x = reads[idx, 0:m]  # x/m refer the test sample
         y = reads[idx, m:(m+n)]  # y/n refer to the control sample
@@ -47,7 +47,7 @@ def weighted_log_likelihood(v_hat, m, n, reads, diff_test):
                 m*numpy.log(v_hat/(v_hat+numpy.mean(x)))*weight_x + 
                 n*numpy.log(v_hat/(v_hat+numpy.mean(y)))*weight_y)
         equation = (equation + 
-                log_likelihood*(1-(abs(n_window/2-idx)/(n_window/2+1))))
+                log_likelihood*(1-(abs(float(n_window)/2-idx-0.5)/(float(n_window)/2+1))))
     return equation
 
 
@@ -161,7 +161,6 @@ def mock(d,p):
  
 def negative_binomial(read_dict,peakfilename, swap, parameter):
     '''the main function that test for significant windows.'''
-    print(len(read_dict))
     # Initialize the parameters
     peaktype = parameter.peaktype
     threshold = parameter.threshold
