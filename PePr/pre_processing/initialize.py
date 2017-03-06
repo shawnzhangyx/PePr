@@ -3,9 +3,9 @@
 from logging import info
 import pysam
 
-import shiftSize
-import cal_normalization
-import windowSize
+from . import shiftSize
+from . import cal_normalization
+from . import windowSize
 
 def preprocess(parameter):
     ''' read file and estimate shift sizes and normazliation parameters. 
@@ -103,7 +103,7 @@ def get_chromosome_info(parameter, chip_filename):
          get_chr_info_sam(parameter, chip_filename)        
     if parameter.file_format == "bed":
          get_chr_info_bed(parameter, chip_filename)
-    message = ' | '.join([str(key)+":"+str(value) for key,value in parameter.chr_info.iteritems()])
+    message = ' | '.join([str(key)+":"+str(value) for key,value in parameter.chr_info.items()])
     info("Found "+message)
     return 
 

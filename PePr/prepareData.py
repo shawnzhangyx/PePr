@@ -139,7 +139,7 @@ def read_file_to_array(filename, parameter):
 def read_file_to_array_wrapper(args):
     try: 
         return read_file_to_array(*args)
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         pass
      
 def read_files_to_arrays(parameter):
@@ -149,11 +149,12 @@ def read_files_to_arrays(parameter):
             parameter.array_dict[filename] = read_file_to_array(filename, parameter)
     else:
         pool = multiprocessing.Pool(parameter.num_procs)
-        p = pool.map_async(read_file_to_array_wrapper, itertools.izip(parameter.get_filenames(), itertools.repeat(parameter)),1)
+#        p = pool.map_async(read_file_to_array_wrapper, itertools.izip(parameter.get_filenames(), itertools.repeat(parameter)),1)
+        p = pool.map_async(read_file_to_array_wrapper, zip(parameter.get_filenames(), itertools.repeat(parameter)),1)
         try: results = p.get()
         except KeyboardInterrupt:
             exit(1)
-        for filename, result in itertools.izip(parameter.get_filenames(), results):
+        for filename, result in zip(parameter.get_filenames(), results):
             parameter.array_dict[filename] = result
             
     return 

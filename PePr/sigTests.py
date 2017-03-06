@@ -150,7 +150,7 @@ def per_chr_nbtest_helper(args):
 	### help the workers to take multiple arguments 
     try: 
         return per_chr_nbtest(*args)
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         pass 
 
 def mock_helper(args):
@@ -161,7 +161,7 @@ def mock(d,p):
  
 def negative_binomial(read_dict,peakfilename, swap, parameter):
     '''the main function that test for significant windows.'''
-    print len(read_dict)
+    print(len(read_dict))
     # Initialize the parameters
     peaktype = parameter.peaktype
     threshold = parameter.threshold
@@ -206,7 +206,7 @@ def negative_binomial(read_dict,peakfilename, swap, parameter):
                 read_array = read_dict[chr]
                 read_dict[chr] = sharedmem.copy(read_array)
         except ImportError:
-            print "Import sharedmem package failed"
+            print("Import sharedmem package failed")
             
         pool = multiprocessing.Pool(processes=parameter.num_procs)#,maxtasksperchild=1)
         for chr in parameter.chr_info:

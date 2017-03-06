@@ -8,7 +8,7 @@ peaktype	sharp
 windowsize	200
 difftest	False
 threshold	1e-05
-normalization	intra-group	
+normalization	intra-group
 keep-max-dup	1
 input-directory	./
 output-directory	./

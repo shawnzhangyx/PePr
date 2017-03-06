@@ -213,7 +213,7 @@ class Parameters:
                 raise Exception('Output directory: {0} does not exist'.format(self.output_directory))
         for filename in self.get_filenames():
             if os.path.isfile(self.input_directory+filename) is False:
-                print "File:",self.input_directory+filename, " not found"
+                print("File:",self.input_directory+filename, " not found")
                 exit(1)
 
     @staticmethod

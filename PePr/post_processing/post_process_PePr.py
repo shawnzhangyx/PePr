@@ -88,11 +88,11 @@ def main(argv):
     readData = ReadData(opt)
     get_read_length_info(readData)
     readData.read_length = readData.get_read_length()
-    print'read length is {0}'.format(readData.read_length)
+    print('read length is {0}'.format(readData.read_length))
     data_dict = {}
 
     for filename in opt.chip+opt.input:
-        print "reading {0}".format(filename)
+        print ("reading {0}".format(filename))
         data_dict[filename] = {}
         forward, reverse = parse_file_by_strand[readData.file_format](filename,readData.input_directory)
         for chr in set(forward.keys())&set(reverse.keys()):
@@ -124,7 +124,7 @@ def post_processing(readData, peak, passed, filtered, remove_artefacts=False, na
     removed_count = 0
     for idx,line in enumerate(peak):
         if idx%100 == 0:
-            print '{0} peaks processed'.format(idx)
+            print ('{0} peaks processed'.format(idx))
         words = line.strip().split('\t')
         chr = words[0]
         start = int(words[1])
@@ -156,7 +156,7 @@ def post_processing(readData, peak, passed, filtered, remove_artefacts=False, na
         #passed.write(str(chip_input_ratio) + '\t' +
         #                  str(overlap_orig) +
         #                 '\t' + str(overlap_roll) + '\n')
-    print 'Done. {0} out of {1} peaks failed the test and removed'.format(removed_count, idx+1)
+    print ('Done. {0} out of {1} peaks failed the test and removed'.format(removed_count, idx+1))
     return 
 
 
@@ -267,7 +267,7 @@ def post_processing_module():
 if __name__ == '__main__':
     try: main(sys.argv)
     except KeyboardInterrupt:
-        print "user interrupted me"
+        print("user interrupted me")
 
 
 

@@ -8,7 +8,7 @@ import numpy
 
 from scipy.stats import rankdata
 from logging import info 
-from cal_normalization import parse_to_bin
+from .cal_normalization import parse_to_bin
 
 def estimate_window_size(filename, parameter, iter=500):
     '''function to estimate the window size if not provided'''

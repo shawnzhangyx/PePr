@@ -19,9 +19,9 @@ class TestParameter:
 
 if __name__ == "__main__":
     parameter = TestParameter(sys.argv)
-    print sys.argv
+    print (sys.argv)
     get_chromosome_info(parameter, sys.argv[2])
     get_read_length_info(parameter)
-    print parameter.chr_info
+    print(parameter.chr_info)
     estimate_shiftsize(sys.argv[2], parameter)
 

@@ -51,7 +51,7 @@ def scale(parameter):
 def get_file_line_counts_wrapper(args):
     try:
         return get_file_line_counts(*args)
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         pass
 
 def get_file_line_counts(filename, parameter):
@@ -262,7 +262,7 @@ def input_ncis(ref, target):
 def parse_to_bin_wrapper(args):
     try: 
         return parse_to_bin(*args)
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         pass 
         
     
@@ -360,7 +360,7 @@ def parse_sampe_to_bin(filename, bin_size, bin_dict, input_dir):
                 flen_list.append(abs(flen))
                 line_saved = True
 
-    print num
+    print(num)
     # will calculate the median fragment size and remove the reads that have larger fragment size than it. 
     flen_median = numpy.median(flen_list)
     # print flen_median
@@ -411,7 +411,7 @@ def parse_bampe_to_bin(filename, bin_size, bin_dict, input_dir):
                     flen_dict[chr] = array.array('i',[line.tlen])
                 flen_list.append(abs(line.tlen))
                 line_saved = True
-    print num
+    print(num)
     # calculate the median fragment size and remove reads that are two times larger.
     flen_median = numpy.median(flen_list)
     for chr in reads_dict:

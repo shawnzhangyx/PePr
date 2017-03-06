@@ -7,7 +7,7 @@ import itertools
 import pysam 
 import array
 
-from fileParser import parse_file_by_strand
+from .fileParser import parse_file_by_strand
 
 BIN = 1000
 
@@ -44,7 +44,7 @@ def estimate_shiftsizes(parameter):
 def estimate_shiftsize_wrapper(args):
     try:
         return estimate_shiftsize(*args)
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         pass
         
 def estimate_shiftsize(chip, parameter):
