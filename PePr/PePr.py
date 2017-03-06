@@ -9,10 +9,10 @@ import time
 from logging import info
 
 # local modules
-import optParser
-from pre_processing import initialize
-import prepareData
-import sigTests
+from . import optParser
+from .pre_processing import initialize
+from . import prepareData
+from . import sigTests
 
 
 def pre_processing_module():

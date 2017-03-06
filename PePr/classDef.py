@@ -1,9 +1,9 @@
 import os
-import logConfig
 from logging import info, debug, warning
 import collections
 import pysam
 
+from . import logConfig
 ## global variable read_dict
 read_dict = {}
 def init_dict():

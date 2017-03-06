@@ -4,7 +4,7 @@ import pysam
 import multiprocessing
 import itertools 
 #from pre_processing.shiftSize import parse_bed_for_f_r,parse_bam_for_f_r,parse_sam_for_f_r
-from pre_processing.fileParser import parse_file_by_strand, parse_file_pe
+from .pre_processing.fileParser import parse_file_by_strand, parse_file_pe
 
 def read_bam(filename, data_dict, parameter):
     shift_size = parameter.shift_dict[filename]

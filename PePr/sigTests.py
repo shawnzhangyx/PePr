@@ -3,7 +3,6 @@
 import os
 import numpy
 import logging
-from classDef import Peak
 from scipy.special import psi
 from scipy.stats.distributions import norm
 from operator import attrgetter, itemgetter
@@ -12,6 +11,8 @@ from multiprocessing import sharedctypes
 import itertools
 import time
 import gc 
+
+from .classDef import Peak
 
 debug = logging.debug
 info = logging.info
