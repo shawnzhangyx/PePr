@@ -1,3 +1,8 @@
+2017-03-06 Yanxiao Zhang <yanxiazh@umich.edu>
+	* version 1.1.18
+	* fixed sveral runtime bugs
+	* Made compatible with python 3x
+
 2016-08-08 Yanxiao Zhang <yanxiazh@umich.edu>
 	* version 1.1.13
 	* fixed a bug if the bam file read is smaller 1000 reads. 

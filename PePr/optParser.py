@@ -1,5 +1,6 @@
 from optparse import OptionParser
-from classDef import Parameters
+
+from .classDef import Parameters
 
 
 def opt_parser(argv):
