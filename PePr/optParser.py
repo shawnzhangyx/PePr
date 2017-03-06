@@ -99,7 +99,7 @@ def opt_parser(argv):
         parser.print_help()
         exit(1)
     if opt.version == True:
-        from  __init__ import __version__
+        from  .__init__ import __version__
         print ("PePr "+ __version__)
         exit(1)
 
