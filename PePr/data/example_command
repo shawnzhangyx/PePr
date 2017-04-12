@@ -6,3 +6,5 @@ python ../PePr.py -c chip_rep1.bed,chip_rep2.bed --chip2 input_rep1.bed,input_re
 # test repeat file names
 PePr -c chip_rep1.bed,chip_rep2.bed -i input_rep1.bed,input_rep1.bed -f bed -s 45 -w 180 -n test_same_name
 
+PePr -c chip_rep1.bed,chip_rep1.bed --chip2 chip_rep2.bed,chip_rep2.bed -i input_rep1.bed,input_rep1.bed --input2 input_rep2.bed,input_rep2.bed -f bed -s 45 -w 180 -n test_same_name_diff --diff
+
