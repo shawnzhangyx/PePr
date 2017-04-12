@@ -308,6 +308,9 @@ class Parameters:
     def get_filenames(self):
         return self.chip1+self.chip2+self.input1+self.input2
     
+    def get_uniq_filenames(self):
+       return list(set(self.get_filenames()))
+    
     def get_filetypes(self):
         return ['chip1']*len(self.chip1) + ['chip2'] * len(self.chip2) + ['input1'] * len(self.input1) + ['input2'] * len(self.input2)
     

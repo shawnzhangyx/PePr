@@ -145,16 +145,16 @@ def read_file_to_array_wrapper(args):
 def read_files_to_arrays(parameter):
     
     if parameter.num_procs <2:
-        for filename in parameter.get_filenames():
+        for filename in parameter.get_uniq_filenames():
             parameter.array_dict[filename] = read_file_to_array(filename, parameter)
     else:
         pool = multiprocessing.Pool(parameter.num_procs)
-#        p = pool.map_async(read_file_to_array_wrapper, zip(parameter.get_filenames(), itertools.repeat(parameter)),1)
-        p = pool.map_async(read_file_to_array_wrapper, zip(parameter.get_filenames(), itertools.repeat(parameter)),1)
+#        p = pool.map_async(read_file_to_array_wrapper, zip(parameter.get_uniq_filenames(), itertools.repeat(parameter)),1)
+        p = pool.map_async(read_file_to_array_wrapper, zip(parameter.get_uniq_filenames(), itertools.repeat(parameter)),1)
         try: results = p.get()
         except KeyboardInterrupt:
             exit(1)
-        for filename, result in zip(parameter.get_filenames(), results):
+        for filename, result in zip(parameter.get_uniq_filenames(), results):
             parameter.array_dict[filename] = result
             
     return 
@@ -162,24 +162,29 @@ def read_files_to_arrays(parameter):
 def prepare_data_peak_calling(parameter):
     info ("Begin peak-calling")
     data_dict = {}
+    files_remain_in_queue = parameter.get_filenames()
     for filename in parameter.chip1:
         for chr in parameter.chr_info:
             try: 
                 data_dict[chr] = numpy.column_stack((data_dict[chr], parameter.array_dict[filename][chr]))
             except KeyError:
                 data_dict[chr] = parameter.array_dict[filename][chr]
-            del parameter.array_dict[filename][chr] 
+            if filename not in files_remain_in_queue: 
+                del parameter.array_dict[filename][chr] 
+        files_remain_in_queue.remove(filename)
     for filename in parameter.input1:
         for chr in parameter.chr_info:
             data_dict[chr] = numpy.column_stack((data_dict[chr], parameter.array_dict[filename][chr]))
-            del parameter.array_dict[filename][chr]        
-    
+            if filename not in files_remain_in_queue:
+                del parameter.array_dict[filename][chr]        
+        files_remain_in_queue.remove(filename)
     return data_dict
     
     
 def prepare_data_diff_binding(parameter):
     info ("Begin differential binding analysis")
     data_dict = {}
+    files_remain_in_queue = parameter.get_filenames()
     chip1_array = {}
     for filename in parameter.chip1:
         for chr in parameter.chr_info:
@@ -188,7 +193,9 @@ def prepare_data_diff_binding(parameter):
             except KeyError:
                 chip1_array[chr] = parameter.array_dict[filename][chr]
             # delete the original array. 
-            del parameter.array_dict[filename][chr]
+            if filename not in files_remain_in_queue:
+                del parameter.array_dict[filename][chr]
+        files_remain_in_queue.remove(filename)
     if len(parameter.input1)> 0:
         input1_array = {}
         if parameter.chip1_matched_input is True: 
@@ -198,7 +205,9 @@ def prepare_data_diff_binding(parameter):
                         input1_array[chr] = numpy.column_stack((input1_array[chr], parameter.array_dict[filename][chr]))
                     except KeyError:
                         input1_array[chr] = parameter.array_dict[filename][chr]     
-                    del parameter.array_dict[filename][chr]
+                    if filename not in files_remain_in_queue:
+                        del parameter.array_dict[filename][chr]
+                files_remain_in_queue.remove(filename)
         else: 
             for filename in parameter.input1:
                 for chr in parameter.chr_info:
@@ -206,7 +215,10 @@ def prepare_data_diff_binding(parameter):
                         input1_array[chr] += parameter.array_dict[filename][chr]
                     except KeyError:
                         input1_array[chr] = parameter.array_dict[filename][chr] 
-                    del parameter.array_dict[filename][chr]
+                    if filename not in files_remain_in_queue:
+                        del parameter.array_dict[filename][chr]
+                files_remain_in_queue.remove(filename)
+
             for chr in parameter.chr_info:
                 input1_array[chr] /= len(parameter.input1)
                 input1_array[chr].resize(len(input1_array[chr]),1)
@@ -222,7 +234,9 @@ def prepare_data_diff_binding(parameter):
                 chip2_array[chr] = numpy.column_stack((chip2_array[chr], parameter.array_dict[filename][chr]))
             except KeyError:
                 chip2_array[chr] = parameter.array_dict[filename][chr]
-            del parameter.array_dict[filename][chr]    
+            if filename not in files_remain_in_queue:
+                del parameter.array_dict[filename][chr]    
+        files_remain_in_queue.remove(filename)
     if len(parameter.input2)> 0:
         input2_array = {}
         if parameter.chip2_matched_input is True: 
@@ -232,7 +246,9 @@ def prepare_data_diff_binding(parameter):
                         input2_array[chr] = numpy.column_stack((input2_array[chr], parameter.array_dict[filename][chr]))
                     except KeyError:
                         input2_array[chr] = parameter.array_dict[filename][chr]
-                    del parameter.array_dict[filename][chr]
+                    if filename not in files_remain_in_queue:
+                        del parameter.array_dict[filename][chr]
+                files_remain_in_queue.remove(filename)
         else: 
             for filename in parameter.input2:
                 for chr in parameter.chr_info:
@@ -240,7 +256,9 @@ def prepare_data_diff_binding(parameter):
                         input2_array[chr] += parameter.array_dict[filename][chr]
                     except KeyError:
                         input2_array[chr] = parameter.array_dict[filename][chr] 
-                    del parameter.array_dict[filename][chr]
+                    if filename not in files_remain_in_queue:
+                        del parameter.array_dict[filename][chr]
+                files_remain_in_queue.remove(filename)
             for chr in parameter.chr_info:
                 input2_array[chr] /= len(parameter.input2)
                 input2_array[chr].resize(len(input2_array[chr]),1)

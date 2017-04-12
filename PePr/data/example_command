@@ -2,3 +2,7 @@
 python ../PePr.py -i input_rep1.bed,input_rep2.bed -c chip_rep1.bed,chip_rep2.bed -f bed -s 45 -w 180 -n my_test_run
 #running without input samples 
 python ../PePr.py -c chip_rep1.bed,chip_rep2.bed --chip2 input_rep1.bed,input_rep2.bed -f bed -s 45 -w 180 -n no_input_run --diff
+
+# test repeat file names
+PePr -c chip_rep1.bed,chip_rep2.bed -i input_rep1.bed,input_rep1.bed -f bed -s 45 -w 180 -n test_same_name
+
