@@ -263,7 +263,7 @@ def negative_binomial(read_dict,peakfilename, swap, parameter):
         qval = final_peak[5]
         # tentatively, assign the normalized fold change as the score in 5th column
         score = fc/max_fc*1000 # range from 0 to 1000
-        peakfile.write( '\t'.join([chr, str(start), str(end), 
+        peakfile.write( '\t'.join([chr, str(int(start)), str(int(end)), 
                         ("chip2" if swap else "chip1") + "_peak_" +str(idx+1), 
                         str(score), '.', str(fc), str(pval), str(qval)]) + '\n')
     return 
