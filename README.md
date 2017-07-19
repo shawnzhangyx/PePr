@@ -11,7 +11,7 @@ PePr is a ChIP-Seq Peak-calling and Prioritization pipeline that uses a sliding 
 4. If installation is successful, you could directly invoke the script by typing `PePr`. A help message will show up. 
 
 ### Supported File Formats
-* Single-end: BED, BAM, SAM. 
+* Single-end: BED, BAM, SAM. **For an example of BED format, please see https://genome.ucsc.edu/FAQ/FAQformat.html#format1. BED files need to have at least 6 columns (including chromsome name[1], start[2], end[3], and strand[6]. To estimate shift size (default), you need to have reads from both "+" and "-" strand".)**
 * Paired-end: BAM, SAM. The files must be sorted by the read names. Users can use `samtools sort -n sample.bam sample.sorted_by_name` to sort the file. 
 
 ### Scripts to call PePr
