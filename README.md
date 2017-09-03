@@ -84,11 +84,11 @@ PePr will also output a complete parameter file for you to keep a record of your
 
 ### Links
 * https://github.com/shawnzhangyx/PePr/ # Source code
-* https://ones.ccmb.med.umich.edu/tags/PePr/ # PePr FAQ
+* https://omicspedia.ucsd.edu/omicspedia/tags/PePr/ # PePr FAQ
 * https://pypi.python.org/pypi/pepr #PyPI package index
 
 ### Questions?
-Questions are preferred to be posted on https://ones.ccmb.med.umich.edu/, you'll very likely find similar problems in there too (https://ones.ccmb.med.umich.edu/tags/PePr/?tab=Summary). You're also welcome to shoot me an e-mail at yanxiazh@umich.edu, I'll try replying to you as soon as possible. 
+Questions are preferred to be posted on https://omicspedia.ucsd.edu/omicspedia or Github, you'll very likely find similar problems in there too (https://omicspedia.ucsd.edu/omicspedia/tags/PePr/?tab=Summary). You're also welcome to shoot me an e-mail at yanxiazh@umich.edu, I'll try replying to you as soon as possible. 
 
 
 ### Cite PePr
