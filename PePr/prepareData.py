@@ -6,82 +6,6 @@ import itertools
 #from pre_processing.shiftSize import parse_bed_for_f_r,parse_bam_for_f_r,parse_sam_for_f_r
 from .pre_processing.fileParser import parse_file_by_strand, parse_file_pe
 
-def read_bam(filename, data_dict, parameter):
-    shift_size = parameter.shift_dict[filename]
-    read_length = parameter.read_length_dict[filename]
-    move_size = parameter.window_size/2
-    num = 0 
-    infile = pysam.Samfile(parameter.input_directory+filename, 'rb')
-    for line in infile.fetch(until_eof = True):
-        num += 1
-        if num %10000000 == 0:
-            print("{0:,} lines processed in {1}".format(num, filename))
-        if line.is_unmapped is False:
-            chr = infile.getrname(line.tid)
-            if line.is_reverse is False:
-                pos = line.pos + shift_size
-            else:
-                pos = line.pos + read_length- shift_size
-            try: 
-                data_dict[chr][int(pos/move_size)] += 1
-            except (IndexError, KeyError) as e: pass # index out of range at the end of chr. 
-                
-    return data_dict           
-    
-def read_sam(filename,data_dict, parameter):
-
-    shift_size = parameter.shift_dict[filename]
-    read_length = parameter.read_length_dict[filename]
-    move_size = parameter.window_size/2
-    num = 0
-    infile = open(parameter.input_directory+filename, 'r')
-    # skip the header of the SAM file. 
-    for line in infile:
-        if not line.startswith("@"):
-            break
-    # start reading the real data
-    for line in infile:
-        num += 1
-        if num %10000000 == 0:
-            print("{0:,} lines processed in {1}".format(num, filename))
-        words = line.strip().split()
-        flag = int(words[1])
-    
-        if not flag & 0x0004: #if not unmapped
-            chr, pos =  words[2], int(words[3])-1
-            if flag & 0x0010: #if reversed
-                pos = pos + read_length - shift_size
-            else: 
-                pos += shift_size
-            try: 
-                data_dict[chr][int(pos/move_size)] += 1
-            except (IndexError, KeyError) as e: pass # index out of range at end of chr.
-                
-                
-    return data_dict 
-    
-    
-def read_bed(filename, data_dict, parameter): 
-    
-    shift_size = parameter.shift_dict[filename]
-    move_size = parameter.window_size/2
-    
-    infile = open(parameter.input_directory+filename, 'r')
-    num = 0
-    for line in infile: 
-        chr,start,end,col3,col4,strand = line.strip().split()
-        num += 1
-        if num %10000000 == 0:
-            print("{0:,} lines processed in {1}".format(num, filename))
-        if strand == "+":
-            pos = int(start) + shift_size
-        else: 
-            pos = int(end) - shift_size
-        try: data_dict[chr][int(pos/move_size)] += 1
-        except (IndexError, KeyError) as e:    pass
-        
-    return data_dict
-
 def remove_duplicate(fragments, max):
     for chr in fragments:
         fragment_chr = fragments[chr]
@@ -118,7 +42,7 @@ def read_file_to_array(filename, parameter):
         for chr in forward:
             forward[chr] = numpy.array(forward[chr]) + parameter.shift_dict[filename] 
         for chr in reverse:
-            reverse[chr] = numpy.array(reverse[chr]) - parameter.shift_dict[filename] + parameter.read_length_dict[filename]
+            reverse[chr] = numpy.array(reverse[chr]) - parameter.shift_dict[filename] 
         fragments_list = [forward, reverse]
  
     for fragments in fragments_list: 

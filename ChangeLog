@@ -1,3 +1,9 @@
+2017-09-03 Yanxiao Zhang <yanxiazh@umich.edu>
+	* version 1.1.19-1.1.21
+	* bugfixes
+	* changed read file method. Switch from reading the 
+	left-most position to the read start position.
+
 2017-03-06 Yanxiao Zhang <yanxiazh@umich.edu>
 	* version 1.1.18
 	* fixed sveral runtime bugs

@@ -15,13 +15,13 @@ def parse_bam_for_f_r(filename, input_dir):
         if line.is_unmapped is False:
             chr = infile.getrname(line.tid)
             if line.is_reverse is False:
-                try: forward[chr].append(line.pos)
+                try: forward[chr].append(line.reference_start)
                 except KeyError:
-                    forward[chr] = array.array('i',[line.pos])
+                    forward[chr] = array.array('i',[line.reference_start])
             else:
-                try: reverse[chr].append(line.pos)
+                try: reverse[chr].append(line.reference_end)
                 except KeyError:
-                    reverse[chr] = array.array('i',[line.pos])
+                    reverse[chr] = array.array('i',[line.reference_end])
     return forward,reverse
 
 def parse_sam_for_f_r(filename, input_dir):
@@ -48,6 +48,7 @@ def parse_sam_for_f_r(filename, input_dir):
                 except KeyError:
                     forward[chr] = array.array('i',[pos])
             else:
+                pos += len(words[10])
                 try:  reverse[chr].append(pos)
                 except KeyError:
                     reverse[chr] = array.array('i',[pos])
@@ -63,12 +64,13 @@ def parse_bed_for_f_r(filename, input_dir):
         num += 1
         if num %10000000 == 0:
             print("{0:,} lines processed in {1}".format(num, filename))
-        pos = int(start)
         if strand == "+":
+            pos = int(start)
             try: forward[chr].append(pos)
             except KeyError:
                 forward[chr] = array.array('i',[pos])
         else:
+            pos = int(end)
             try: reverse[chr].append(pos)
             except KeyError:
                 reverse[chr] = array.array('i',[pos])
