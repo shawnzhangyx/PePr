@@ -1,0 +1,13 @@
+#filetype	filename	shift_size	normalization_factor
+chip1	chip_rep1.bed	49	1.27409546108
+chip1	chip_rep2.bed	38	0.825474265922
+input1	input_rep1.bed	43.5	1.19174796098
+input1	input_rep1.bed	43.5	1.19174796098
+file-format	bed
+peaktype	broad
+windowsize	100
+difftest	False
+threshold	1e-05
+normalization	intra-group
+name	NA
+num-processors	1

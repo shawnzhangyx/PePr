@@ -61,8 +61,11 @@ def estimate_shiftsize(chip, parameter):
     forward, reverse = parse_file_by_strand[parameter.file_format](chip, parameter.input_directory)
     shift_list =[]
     for chr in parameter.get_top3_chr():
-        chr_f,chr_r = forward[chr],reverse[chr]
-        shift_list.append(cross_cor(chr_f,chr_r))
+        try: 
+            chr_f,chr_r = forward[chr],reverse[chr]
+            shift_list.append(cross_cor(chr_f,chr_r))
+        except KeyError:
+            print("Only one strand detected. Skipping")
     shift_list.sort()
     frag_size = shift_list[int(len(shift_list)/2)]
     ### parse the reads into bins
