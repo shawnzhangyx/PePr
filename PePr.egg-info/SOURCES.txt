@@ -15,6 +15,7 @@ PePr.egg-info/dependency_links.txt
 PePr.egg-info/entry_points.txt
 PePr.egg-info/requires.txt
 PePr.egg-info/top_level.txt
+PePr/data/NA__PePr_peaks.bed
 PePr/data/chip_rep1.bed
 PePr/data/chip_rep2.bed
 PePr/data/example_command
