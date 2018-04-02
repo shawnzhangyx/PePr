@@ -3,3 +3,4 @@
 build
 PePr/data/NA.*
 dist/*.egg
+test/*

@@ -109,10 +109,10 @@ def parse_sampe(filename,input_dir):
             chr, pos,flen = words[2], int(words[3])-1, int(words[8])
             if flen != 0: # if the other end mapped to the same chromosome
                 try: 
-                    reads_dict[chr].append(pos+flen/2)
+                    reads_dict[chr].append(pos+int(flen/2))
                     flen_dict[chr].append(flen)
                 except KeyError:
-                    reads_dict[chr] = array.array('i',[pos+flen/2])
+                    reads_dict[chr] = array.array('i',[pos+int(flen/2)])
                     flen_dict[chr] = array.array('i', [flen])
                 flen_list.append(abs(flen))
                 line_saved = True
@@ -157,10 +157,10 @@ def parse_bampe(filename, input_dir):
             # flen = line.tlen
             if line.tlen !=0:
                 try: 
-                    reads_dict[chr].append(line.pos+line.tlen/2)
+                    reads_dict[chr].append(line.pos+int(line.tlen/2))
                     flen_dict[chr].append(line.tlen)
                 except KeyError:
-                    reads_dict[chr] = array.array('i',[line.pos+line.tlen/2])
+                    reads_dict[chr] = array.array('i',[line.pos+int(line.tlen/2)])
                     flen_dict[chr] = array.array('i',[line.tlen])
                 flen_list.append(abs(line.tlen))
                 line_saved = True

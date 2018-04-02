@@ -194,9 +194,9 @@ def chip_tmm(ref, target, rep_rank_sum):
     TRIM_M = 0.2
     TRIM_A = 0.05
     order = numpy.argsort(rep_rank_sum)
+#    print(rep_rank_sum)
 #    order = numpy.argsort(-ref)
     len_target_not_zero = len(numpy.where(target > 0)[0])
-    #print len_target_not_zero
     ref = ref[order]
     target = target[order]
     tmm_array = numpy.array([])
@@ -208,10 +208,13 @@ def chip_tmm(ref, target, rep_rank_sum):
             else:
                 break
         ref_n = ref[range(n)]
+        #print("ref_n:",ref_n)
         ref_n[ref_n==0] = 1
         target_n = target[range(n)]
         target_n[target_n==0] = 1
+        #print("target_n:",target_n)
         Mg = numpy.log2(ref_n/target_n)
+        #print(Mg)
         Ag = 0.5*numpy.log2(ref_n*target_n)
         Mg_sorted = Mg.copy()
         Mg_sorted.sort()
@@ -221,9 +224,9 @@ def chip_tmm(ref, target, rep_rank_sum):
         Ag_sorted.sort()
         Ag_lower_bound = Ag_sorted[int(n*TRIM_A)]
         Ag_upper_bound = Ag_sorted[int(n*(1-TRIM_A))]
-        trim_index = numpy.where((Mg > Mg_lower_bound) &
-            (Mg < Mg_upper_bound) & (Ag > Ag_lower_bound) &
-            (Ag < Ag_upper_bound))
+        trim_index = numpy.where((Mg >= Mg_lower_bound) &
+            (Mg <= Mg_upper_bound) & (Ag >= Ag_lower_bound) &
+            (Ag <= Ag_upper_bound))
         ref_trim = ref_n[trim_index]
         target_trim = target_n[trim_index]
         Mgk = numpy.log2(ref_trim/target_trim)
@@ -233,8 +236,8 @@ def chip_tmm(ref, target, rep_rank_sum):
         #debug("The TMM estiamted from top %s windows is %s", n, tmm)
     library_ratio = numpy.sum(ref)/numpy.sum(target)
     tmm_diff_array = numpy.abs(tmm_array - library_ratio)
-    # print tmm_array, tmm_diff_array
     tmm_max = tmm_array[numpy.argmax(tmm_diff_array)]
+    #print(tmm_max)
     return tmm_max
 
     
@@ -352,10 +355,10 @@ def parse_sampe_to_bin(filename, bin_size, bin_dict, input_dir):
             chr, pos,flen = words[2], int(words[3])-1, int(words[8])
             if flen != 0: # if the other end mapped to the same chromosome
                 try:
-                    reads_dict[chr].append(pos+flen/2)
+                    reads_dict[chr].append(pos+int(flen/2))
                     flen_dict[chr].append(flen)
                 except KeyError:
-                    reads_dict[chr] = array.array('i',[pos+flen/2])
+                    reads_dict[chr] = array.array('i',[pos+int(flen/2)])
                     flen_dict[chr] = array.array('i', [flen])
                 flen_list.append(abs(flen))
                 line_saved = True
@@ -388,7 +391,7 @@ def parse_bampe_to_bin(filename, bin_size, bin_dict, input_dir):
     line_saved = False
     pre_name = ''
     for line in infile.fetch(until_eof = True):
-        num += 1
+        num += #1
         if num % 10000000 == 0 :
             print ("{0:,} lines processed in {1}".format(num, filename))
         name = line.query_name
@@ -404,10 +407,10 @@ def parse_bampe_to_bin(filename, bin_size, bin_dict, input_dir):
             # flen = line.tlen
             if line.tlen !=0:
                 try: 
-                    reads_dict[chr].append(line.pos+line.tlen/2)
+                    reads_dict[chr].append(line.pos+int(line.tlen/2))
                     flen_dict[chr].append(line.tlen)
                 except KeyError:
-                    reads_dict[chr] = array.array('i',[line.pos+line.tlen/2])
+                    reads_dict[chr] = array.array('i',[int(line.pos+line.tlen/2)])
                     flen_dict[chr] = array.array('i',[line.tlen])
                 flen_list.append(abs(line.tlen))
                 line_saved = True
@@ -422,7 +425,6 @@ def parse_bampe_to_bin(filename, bin_size, bin_dict, input_dir):
             try:
                 bin_dict[chr][int(pos/bin_size)] += 1
             except (IndexError, KeyError) as e: pass # index out of range
-
     return bin_dict
     
 def parse_to_bin(filename, bin_size, parameter):

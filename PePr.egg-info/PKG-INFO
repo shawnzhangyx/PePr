@@ -1,11 +1,12 @@
 Metadata-Version: 1.1
 Name: PePr
-Version: 1.1.22
+Version: 1.1.23
 Summary: Peak-calling and Prioritization pipeline for replicated ChIP-Seq data
 Home-page: https://github.com/shawnzhangyx/PePr/
 Author: Yanxiao Zhang
 Author-email: troublezhang@gmail.com
 License: GNU GPL v3
+Description-Content-Type: UNKNOWN
 Description: Peak-calling and Prioritization pipeline for replicated ChIP-Seq data
 Platform: any
 Classifier: Development Status :: 4 - Beta

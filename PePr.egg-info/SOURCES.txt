@@ -1,5 +1,6 @@
 ChangeLog
 MANIFEST.in
+README.md
 setup.py
 PePr/PePr.py
 PePr/__init__.py
