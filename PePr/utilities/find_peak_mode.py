@@ -103,7 +103,7 @@ def cross_cor(f, r):
 
 def estimate_shift_size(forward,reverse):
     shift_list = []
-    print 'estimating shift size:'
+    print('estimating shift size:')
     for chr in set(forward.keys())&set(reverse.keys()):
         print chr
         chr_f, chr_r = forward[chr], reverse[chr]

@@ -391,7 +391,7 @@ def parse_bampe_to_bin(filename, bin_size, bin_dict, input_dir):
     line_saved = False
     pre_name = ''
     for line in infile.fetch(until_eof = True):
-        num += #1
+        num += 1
         if num % 10000000 == 0 :
             print ("{0:,} lines processed in {1}".format(num, filename))
         name = line.query_name
