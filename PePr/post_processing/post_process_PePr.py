@@ -75,7 +75,7 @@ class ReadData:
         self.input_directory = ''  
 
     def get_read_length(self):
-        return self.read_length_dict.values()[0]
+        return list(self.read_length_dict.values())[0]
 
     def get_filenames(self):
         return self.chip_filename_list + self.input_filename_list
