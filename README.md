@@ -90,7 +90,7 @@ PePr will also output a complete parameter file for you to keep a record of your
 ### Questions?
 You're also welcome to shoot me an e-mail at yanxiazh@umich.edu, I'll try replying to you as soon as possible. In the e-mail, please include **[1] a copy of your command/script to call PePr, [2] paramters.txt file, and [3] log file**. It will speed up the troubleshooting process. 
 
-Questions can also be posted on https://renlab.sdsc.edu/omics or Github, you'll very likely find similar problems in there too (https://renlab.sdsc.edu/omics/tags/PePr/?tab=Summary). 
+<!-- Questions can also be posted on https://renlab.sdsc.edu/omics or Github, you'll very likely find similar problems in there too (https://renlab.sdsc.edu/omics/tags/PePr/?tab=Summary).  -->
 
 
 ### Cite PePr
